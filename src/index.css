@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222 62% 7%;
+    --foreground: 210 40% 98%;
+    --card: 222 52% 10%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 52% 10%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 41 96% 54%;
+    --primary-foreground: 222 70% 10%;
+    --secondary: 221 34% 16%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 220 31% 16%;
+    --muted-foreground: 215 20% 72%;
+    --accent: 220 31% 16%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 72% 52%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 218 27% 18%;
+    --input: 218 27% 18%;
+    --ring: 41 96% 54%;
+    --radius: 1rem;
+    --sidebar-background: 222 62% 7%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 41 96% 54%;
+    --sidebar-primary-foreground: 222 70% 10%;
+    --sidebar-accent: 221 34% 16%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 218 27% 18%;
+    --sidebar-ring: 41 96% 54%;
+    --page-bg: #050816;
+    --page-bg-soft: #0b1224;
+    --panel-bg: rgba(7, 14, 28, 0.76);
+    --panel-border: rgba(148, 163, 184, 0.14);
+    --panel-shadow: 0 32px 80px rgba(0, 0, 0, 0.34);
+    --font-display: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', 'Songti SC',
+      'STSong', 'Noto Serif CJK SC', serif;
+    --font-body: 'Avenir Next', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+      'Noto Sans CJK SC', sans-serif;
+  }
+
+  .dark {
+    --background: 222 62% 7%;
+    --foreground: 210 40% 98%;
+    --card: 222 52% 10%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 52% 10%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 41 96% 54%;
+    --primary-foreground: 222 70% 10%;
+    --secondary: 221 34% 16%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 220 31% 16%;
+    --muted-foreground: 215 20% 72%;
+    --accent: 220 31% 16%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 72% 52%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 218 27% 18%;
+    --input: 218 27% 18%;
+    --ring: 41 96% 54%;
+    --sidebar-background: 222 62% 7%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 41 96% 54%;
+    --sidebar-primary-foreground: 222 70% 10%;
+    --sidebar-accent: 221 34% 16%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 218 27% 18%;
+    --sidebar-ring: 41 96% 54%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    min-height: 100vh;
+    font-family: var(--font-body);
+    background:
+      radial-gradient(circle at top left, rgba(251, 191, 36, 0.14), transparent 30%),
+      radial-gradient(circle at 85% 12%, rgba(56, 189, 248, 0.12), transparent 26%),
+      linear-gradient(180deg, var(--page-bg-soft), var(--page-bg));
+  }
+
+  #root {
+    min-height: 100vh;
+  }
+
+  ::selection {
+    background: rgba(251, 191, 36, 0.28);
+    color: #fff8e7;
+  }
+}
