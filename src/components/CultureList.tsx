@@ -1,10 +1,14 @@
 import { motion } from 'framer-motion';
 import { Layers3 } from 'lucide-react';
-import { type Culture } from '@/data/cultures';
+import { type Culture, type Locale } from '@/data/cultures';
+import type { SiteCopy } from '@/data/siteContent';
 import { Button } from '@/components/ui/button';
 import { CultureCard } from './CultureCard';
 
 interface CultureListProps {
+  copy: SiteCopy['cultureList'];
+  locale: Locale;
+  cardCopy: SiteCopy['cultureCard'];
   cultures: Culture[];
   selectedCulture: Culture | null;
   eraName: string;
@@ -13,36 +17,42 @@ interface CultureListProps {
 }
 
 export function CultureList({
+  copy,
+  locale,
+  cardCopy,
   cultures,
   selectedCulture,
   eraName,
   onCultureSelect,
   onOpenFocusedCulture,
 }: CultureListProps) {
+  const title =
+    locale === 'zh' ? `${eraName}${copy.titleSuffix}` : `${eraName}${copy.titleSuffix}`;
+  const totalLabel =
+    locale === 'zh'
+      ? `${copy.totalPrefix} ${cultures.length} ${copy.totalUnit}`
+      : `${cultures.length} ${copy.totalUnit}`;
+
   return (
     <div className="paper-card p-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="section-eyebrow">CULTURE NODES</p>
-          <h2 className="mt-2 font-display text-3xl text-slate-900">
-            {eraName}的文化节点
-          </h2>
-          <p className="mt-2 text-sm leading-7 text-stone-600">
-            这里保留本篇章最重要的节点卡片。点击卡片切换焦点，确认当前重点后再展开详细资料。
-          </p>
+          <p className="section-eyebrow">{copy.eyebrow}</p>
+          <h2 className="mt-2 font-display text-3xl site-heading">{title}</h2>
+          <p className="mt-2 text-sm leading-7 site-muted">{copy.description}</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <span className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-stone-50 px-3 py-2 text-xs text-stone-600">
+          <span className="legend-pill">
             <Layers3 className="h-4 w-4" />
-            共 {cultures.length} 个节点
+            {totalLabel}
           </span>
           <Button
             variant="outline"
             onClick={onOpenFocusedCulture}
-            className="rounded-full border-stone-300 bg-white text-slate-700 hover:bg-stone-100"
+            className="secondary-button rounded-full px-4"
           >
-            查看当前焦点详情
+            {copy.openFocused}
           </Button>
         </div>
       </div>
@@ -55,6 +65,7 @@ export function CultureList({
         {cultures.map((culture, index) => (
           <CultureCard
             key={culture.id}
+            copy={cardCopy}
             culture={culture}
             index={index}
             isActive={selectedCulture?.id === culture.id}

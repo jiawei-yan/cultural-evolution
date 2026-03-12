@@ -3,6 +3,7 @@ import * as d3 from 'd3';
 import { type Culture } from '@/data/cultures';
 
 interface WorldMapProps {
+  theme: 'light' | 'dark';
   cultures: Culture[];
   selectedCulture: Culture | null;
   onCultureSelect: (culture: Culture) => void;
@@ -216,7 +217,12 @@ const worldGeoJSON: GeoJSON.FeatureCollection<
   ]
 };
 
-export function WorldMap({ cultures, selectedCulture, onCultureSelect }: WorldMapProps) {
+export function WorldMap({
+  theme,
+  cultures,
+  selectedCulture,
+  onCultureSelect,
+}: WorldMapProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [dimensions, setDimensions] = useState({ width: 800, height: 400 });
 
@@ -243,6 +249,32 @@ export function WorldMap({ cultures, selectedCulture, onCultureSelect }: WorldMa
     svg.selectAll("*").remove();
 
     const { width, height } = dimensions;
+    const palette =
+      theme === 'dark'
+        ? {
+            oceanStart: '#071321',
+            oceanEnd: '#0b1728',
+            grid: '#35506c',
+            land: '#132538',
+            landStroke: '#3b536b',
+            focusStroke: '#f8fafc',
+            nodeStroke: '#dce7f2',
+            guide: 'rgba(248,250,252,0.58)',
+            labelFill: 'rgba(15,23,42,0.94)',
+            labelText: '#f8fafc',
+          }
+        : {
+            oceanStart: '#16314a',
+            oceanEnd: '#1d4a65',
+            grid: '#5b7792',
+            land: '#23445d',
+            landStroke: '#6f8ea3',
+            focusStroke: '#fffaf2',
+            nodeStroke: '#f5f5f4',
+            guide: 'rgba(255,250,242,0.68)',
+            labelFill: 'rgba(255,250,242,0.96)',
+            labelText: '#0f172a',
+          };
 
     // 使用 Natural Earth 投影，更好的全球视图
     const projection = d3.geoNaturalEarth1()
@@ -261,11 +293,11 @@ export function WorldMap({ cultures, selectedCulture, onCultureSelect }: WorldMa
     
     oceanGradient.append("stop")
       .attr("offset", "0%")
-      .attr("stop-color", "#1e3a5f");
+      .attr("stop-color", palette.oceanStart);
     
     oceanGradient.append("stop")
       .attr("offset", "100%")
-      .attr("stop-color", "#0f172a");
+      .attr("stop-color", palette.oceanEnd);
 
     svg.append("rect")
       .attr("width", width)
@@ -281,7 +313,7 @@ export function WorldMap({ cultures, selectedCulture, onCultureSelect }: WorldMa
       .attr("class", "graticule")
       .attr("d", (feature) => path(feature) ?? "")
       .attr("fill", "none")
-      .attr("stroke", "#334155")
+      .attr("stroke", palette.grid)
       .attr("stroke-width", 0.3)
       .attr("opacity", 0.4);
 
@@ -292,8 +324,8 @@ export function WorldMap({ cultures, selectedCulture, onCultureSelect }: WorldMa
       .append("path")
       .attr("class", "country")
       .attr("d", (feature) => path(feature) ?? "")
-      .attr("fill", "#1e293b")
-      .attr("stroke", "#475569")
+      .attr("fill", palette.land)
+      .attr("stroke", palette.landStroke)
       .attr("stroke-width", 0.5)
       .attr("opacity", 0.9);
 
@@ -329,7 +361,7 @@ export function WorldMap({ cultures, selectedCulture, onCultureSelect }: WorldMa
         .attr("cy", y)
         .attr("r", isFocused ? 7 : 5.5)
         .attr("fill", culture.color)
-        .attr("stroke", isFocused ? "#f8fafc" : "#e2e8f0")
+        .attr("stroke", isFocused ? palette.focusStroke : palette.nodeStroke)
         .attr("stroke-width", isFocused ? 2.2 : 1.2)
         .style("filter", `drop-shadow(0 0 8px ${culture.color})`);
 
@@ -339,7 +371,7 @@ export function WorldMap({ cultures, selectedCulture, onCultureSelect }: WorldMa
           .attr("cy", y)
           .attr("r", culture.radius * 1.65)
           .attr("fill", "none")
-          .attr("stroke", "#f8fafc")
+          .attr("stroke", palette.focusStroke)
           .attr("stroke-width", 1.2)
           .attr("stroke-dasharray", "5,5")
           .attr("opacity", 0.42);
@@ -368,13 +400,13 @@ export function WorldMap({ cultures, selectedCulture, onCultureSelect }: WorldMa
         }
         pulse();
 
-        const labelWidth = Math.max(culture.name.length * 13 + 26, 128);
+        const labelWidth = Math.max(culture.name.length * 9 + 44, 136);
         const labelY = y - culture.radius * 1.55 - 34;
 
         nodeGroup.append("path")
           .attr("d", `M ${x} ${y - 10} L ${x} ${labelY + 28}`)
           .attr("fill", "none")
-          .attr("stroke", "rgba(248,250,252,0.6)")
+          .attr("stroke", palette.guide)
           .attr("stroke-width", 1);
 
         nodeGroup.append("rect")
@@ -383,7 +415,7 @@ export function WorldMap({ cultures, selectedCulture, onCultureSelect }: WorldMa
           .attr("width", labelWidth)
           .attr("height", 34)
           .attr("rx", 10)
-          .attr("fill", "rgba(248,250,252,0.92)")
+          .attr("fill", palette.labelFill)
           .attr("stroke", culture.color)
           .attr("stroke-width", 1);
 
@@ -391,7 +423,7 @@ export function WorldMap({ cultures, selectedCulture, onCultureSelect }: WorldMa
           .attr("x", x)
           .attr("y", labelY + 21)
           .attr("text-anchor", "middle")
-          .attr("fill", "#0f172a")
+          .attr("fill", palette.labelText)
           .attr("font-size", "12px")
           .attr("font-weight", "600")
           .text(culture.name);
@@ -412,7 +444,7 @@ export function WorldMap({ cultures, selectedCulture, onCultureSelect }: WorldMa
         });
     });
 
-  }, [cultures, selectedCulture, onCultureSelect, dimensions]);
+  }, [cultures, selectedCulture, onCultureSelect, dimensions, theme]);
 
   return (
     <div className="w-full h-full relative">

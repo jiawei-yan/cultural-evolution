@@ -9,23 +9,25 @@ import {
   Sparkles,
   X,
 } from 'lucide-react';
-import {
-  type Culture,
-  type ResourceLink,
-} from '@/data/cultures';
+import { type Culture, type ResourceLink } from '@/data/cultures';
+import type { SiteCopy } from '@/data/siteContent';
 import { Button } from '@/components/ui/button';
 
 interface CulturePanelProps {
+  copy: SiteCopy['panel'];
   culture: Culture | null;
   eraName: string;
+  eraAltName: string;
   eraRange: string;
   resources: ResourceLink[];
   onClose: () => void;
 }
 
 export function CulturePanel({
+  copy,
   culture,
   eraName,
+  eraAltName,
   eraRange,
   resources,
   onClose,
@@ -38,7 +40,7 @@ export function CulturePanel({
     <div className="fixed inset-0 z-50 flex justify-end">
       <motion.button
         type="button"
-        className="absolute inset-0 bg-slate-950/30 backdrop-blur-sm"
+        className="absolute inset-0 bg-slate-950/35 backdrop-blur-sm"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -50,29 +52,30 @@ export function CulturePanel({
         animate={{ x: 0, opacity: 1 }}
         exit={{ x: 420, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 220, damping: 28 }}
-        className="relative h-full w-full max-w-[520px] overflow-y-auto border-l border-stone-200 bg-[#fffaf2] p-5 shadow-[0_0_80px_rgba(15,23,42,0.16)] sm:p-6"
+        className="detail-drawer relative h-full w-full max-w-[540px] overflow-y-auto border-l p-5 shadow-[0_0_80px_rgba(15,23,42,0.18)] sm:p-6"
       >
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="section-eyebrow">DETAIL PANEL</p>
-            <p className="mt-2 text-sm text-stone-500">
+            <p className="section-eyebrow">{copy.eyebrow}</p>
+            <p className="mt-2 text-sm site-muted">
               {eraName} · {eraRange}
             </p>
+            <p className="mt-1 text-xs tracking-[0.14em] site-subtle">{eraAltName}</p>
           </div>
           <Button
             variant="outline"
             size="icon"
             onClick={onClose}
-            className="rounded-full border-stone-300 bg-white text-slate-700 hover:bg-stone-100"
+            className="secondary-button rounded-full"
           >
             <X className="h-4 w-4" />
           </Button>
         </div>
 
         <div
-          className="mt-5 rounded-[28px] border border-stone-200 p-6"
+          className="detail-hero mt-5 rounded-[28px] border p-6"
           style={{
-            background: `linear-gradient(135deg, ${culture.color}22, rgba(255,255,255,0.96) 42%)`,
+            background: `linear-gradient(135deg, ${culture.color}24, var(--panel-bg-strong) 42%)`,
           }}
         >
           <div className="flex items-start gap-4">
@@ -83,23 +86,19 @@ export function CulturePanel({
               <Sparkles className="h-7 w-7 text-white" />
             </div>
             <div className="min-w-0 flex-1">
-              <h2 className="font-display text-4xl text-slate-900">
-                {culture.name}
-              </h2>
-              <p className="mt-2 text-sm tracking-[0.12em] text-stone-500">
-                {culture.nameEn}
-              </p>
-              <p className="mt-3 text-sm leading-7 text-slate-600">{culture.period}</p>
+              <h2 className="font-display text-4xl site-heading">{culture.name}</h2>
+              <p className="mt-2 text-sm tracking-[0.12em] site-subtle">{culture.altName}</p>
+              <p className="mt-3 text-sm leading-7 site-muted">{culture.period}</p>
             </div>
           </div>
 
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
             <div className="mini-panel">
-              <span className="mini-label">地理区域</span>
+              <span className="mini-label">{copy.regionLabel}</span>
               <strong className="mini-value">{culture.location.region}</strong>
             </div>
             <div className="mini-panel">
-              <span className="mini-label">影响力强度</span>
+              <span className="mini-label">{copy.influenceLabel}</span>
               <strong className="mini-value">{influenceScore}%</strong>
             </div>
           </div>
@@ -108,16 +107,16 @@ export function CulturePanel({
         <div className="mt-5 space-y-4">
           <section className="panel-block">
             <div className="panel-block-header">
-              <Globe2 className="h-4 w-4 text-stone-500" />
-              文明概述
+              <Globe2 className="h-4 w-4" />
+              {copy.overviewTitle}
             </div>
-            <p className="mt-3 text-sm leading-8 text-slate-600">{culture.description}</p>
+            <p className="mt-3 text-sm leading-8 site-muted">{culture.description}</p>
           </section>
 
           <section className="panel-block">
             <div className="panel-block-header">
-              <Lightbulb className="h-4 w-4 text-stone-500" />
-              主要特征
+              <Lightbulb className="h-4 w-4" />
+              {copy.featuresTitle}
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
               {culture.features.map((feature) => (
@@ -130,8 +129,8 @@ export function CulturePanel({
 
           <section className="panel-block">
             <div className="panel-block-header">
-              <Orbit className="h-4 w-4 text-stone-500" />
-              深层影响
+              <Orbit className="h-4 w-4" />
+              {copy.impactTitle}
             </div>
             <div className="mt-4 space-y-3">
               {culture.influence.map((item) => (
@@ -140,7 +139,7 @@ export function CulturePanel({
                     className="mt-2 h-2 w-2 shrink-0 rounded-full"
                     style={{ backgroundColor: culture.color }}
                   />
-                  <span className="text-sm leading-7 text-slate-600">{item}</span>
+                  <span className="text-sm leading-7 site-muted">{item}</span>
                 </div>
               ))}
             </div>
@@ -148,29 +147,32 @@ export function CulturePanel({
 
           <section className="panel-block">
             <div className="panel-block-header">
-              <MapPin className="h-4 w-4 text-stone-500" />
-              空间坐标
+              <MapPin className="h-4 w-4" />
+              {copy.coordinatesTitle}
             </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <div className="mini-panel">
-                <span className="mini-label">纬度</span>
+                <span className="mini-label">{copy.latitudeLabel}</span>
                 <strong className="mini-value">{culture.location.lat.toFixed(2)}°</strong>
               </div>
               <div className="mini-panel">
-                <span className="mini-label">经度</span>
+                <span className="mini-label">{copy.longitudeLabel}</span>
                 <strong className="mini-value">{culture.location.lng.toFixed(2)}°</strong>
               </div>
             </div>
 
             <div className="mt-4">
-              <div className="flex items-center justify-between text-xs tracking-[0.12em] text-stone-500">
-                <span>地图影响力强度</span>
+              <div className="flex items-center justify-between text-xs tracking-[0.12em] site-subtle">
+                <span>{copy.mapInfluenceLabel}</span>
                 <span>{influenceScore}%</span>
               </div>
-              <div className="mt-2 h-2 rounded-full bg-stone-200">
+              <div className="progress-track mt-2">
                 <div
-                  className="h-full rounded-full"
-                  style={{ width: `${influenceScore}%`, backgroundColor: culture.color }}
+                  className="progress-fill"
+                  style={{
+                    width: `${influenceScore}%`,
+                    backgroundColor: culture.color,
+                  }}
                 />
               </div>
             </div>
@@ -178,12 +180,10 @@ export function CulturePanel({
 
           <section className="panel-block">
             <div className="panel-block-header">
-              <Compass className="h-4 w-4 text-stone-500" />
-              延伸阅读
+              <Compass className="h-4 w-4" />
+              {copy.resourcesTitle}
             </div>
-            <p className="mt-3 text-sm leading-7 text-slate-600">
-              如果你想继续深入这一篇章，下面这些权威页面可以作为下一步阅读入口。
-            </p>
+            <p className="mt-3 text-sm leading-7 site-muted">{copy.resourcesDescription}</p>
             <div className="mt-4 space-y-3">
               {resources.map((resource) => (
                 <a
@@ -197,10 +197,10 @@ export function CulturePanel({
                     <span>{resource.source}</span>
                     <ExternalLink className="h-4 w-4" />
                   </div>
-                  <h3 className="mt-2 text-sm font-medium text-slate-900">
+                  <h3 className="mt-2 text-sm font-medium site-heading">
                     {resource.title}
                   </h3>
-                  <p className="mt-2 text-sm leading-7 text-slate-600">
+                  <p className="mt-2 text-sm leading-7 site-muted">
                     {resource.description}
                   </p>
                 </a>
