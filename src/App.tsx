@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ExternalLink } from 'lucide-react';
 import { Header } from '@/components/Header';
@@ -55,7 +55,8 @@ function App() {
   );
   const [detailCultureId, setDetailCultureId] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isTimelineCompact, setIsTimelineCompact] = useState(false);
+  const [isChromeCompact, setIsChromeCompact] = useState(false);
+  const compactTriggerRef = useRef<HTMLDivElement | null>(null);
 
   const localizedEras = getEras(locale);
   const copy = siteContent[locale];
@@ -114,37 +115,41 @@ function App() {
   }, [isPlaying, localizedEras]);
 
   useEffect(() => {
-    let lastY = window.scrollY;
-    let frameId = 0;
+    const trigger = compactTriggerRef.current;
+    if (!trigger) return undefined;
 
-    const updateCompactState = () => {
-      const currentY = window.scrollY;
-      const scrollingDown = currentY > lastY;
+    let observer: IntersectionObserver | null = null;
 
-      setIsTimelineCompact((previous) => {
-        if (currentY < 96) return false;
-        if (scrollingDown && currentY > 220) return true;
-        if (!scrollingDown && currentY < lastY - 18) return false;
-        return previous;
-      });
+    const connectObserver = () => {
+      const headerHeight = Number.parseFloat(
+        getComputedStyle(document.documentElement)
+          .getPropertyValue('--sticky-header-height')
+          .trim(),
+      );
+      const stickyOffset = Number.isFinite(headerHeight) ? headerHeight + 28 : 136;
 
-      lastY = currentY;
-      frameId = 0;
+      observer?.disconnect();
+      observer = new IntersectionObserver(
+        ([entry]) => {
+          setIsChromeCompact(!entry.isIntersecting);
+        },
+        {
+          root: null,
+          threshold: 0,
+          rootMargin: `-${stickyOffset}px 0px 0px 0px`,
+        },
+      );
+      observer.observe(trigger);
     };
 
-    const handleScroll = () => {
-      if (frameId) return;
-      frameId = window.requestAnimationFrame(updateCompactState);
-    };
-
-    handleScroll();
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    connectObserver();
+    window.addEventListener('resize', connectObserver);
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
-      if (frameId) window.cancelAnimationFrame(frameId);
+      observer?.disconnect();
+      window.removeEventListener('resize', connectObserver);
     };
-  }, []);
+  }, [currentEra.name, currentRange, locale]);
 
   const handleEraChange = (index: number) => {
     const nextSpotlight = getSpotlightCulture(localizedEras[index]);
@@ -188,6 +193,7 @@ function App() {
         copy={copy.header}
         theme={theme}
         locale={locale}
+        isCompact={isChromeCompact}
         currentEraName={currentEra.name}
         currentEraAltName={currentEra.altName}
         currentRange={currentRange}
@@ -200,12 +206,14 @@ function App() {
           copy={copy.timeline}
           eras={localizedEras}
           locale={locale}
-          isCompact={isTimelineCompact}
+          isCompact={isChromeCompact}
           currentEraIndex={currentEraIndex}
           onEraChange={handleEraChange}
           isPlaying={isPlaying}
           onPlayPause={togglePlay}
         />
+
+        <div ref={compactTriggerRef} className="compact-trigger" aria-hidden="true" />
 
         <section className="grid gap-6 xl:grid-cols-[minmax(0,1.28fr)_380px]">
           <motion.section

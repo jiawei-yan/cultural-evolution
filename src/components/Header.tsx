@@ -26,6 +26,7 @@ interface HeaderProps {
   copy: SiteCopy['header'];
   theme: 'light' | 'dark';
   locale: Locale;
+  isCompact: boolean;
   currentEraName: string;
   currentEraAltName: string;
   currentRange: string;
@@ -37,6 +38,7 @@ export function Header({
   copy,
   theme,
   locale,
+  isCompact,
   currentEraName,
   currentEraAltName,
   currentRange,
@@ -77,37 +79,67 @@ export function Header({
       initial={{ opacity: 0, y: -16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
-      className="header-shell"
+      className={cn('header-shell', isCompact && 'header-shell-compact')}
     >
-      <div className="mx-auto flex w-full max-w-[1320px] flex-col gap-4 px-4 py-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <div
+        className={cn(
+          'mx-auto flex w-full max-w-[1320px] flex-col gap-4 px-4 py-4 sm:px-6 lg:px-8',
+          isCompact && 'header-shell-inner-compact',
+        )}
+      >
+        <div
+          className={cn(
+            'flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between',
+            isCompact && 'header-main-row-compact',
+          )}
+        >
           <div className="flex min-w-0 items-center gap-3">
-            <div className="brand-mark">
+            <div className={cn('brand-mark', isCompact && 'brand-mark-compact')}>
               <Globe2 className="h-5 w-5" />
             </div>
             <div className="min-w-0">
-              <h1 className="truncate font-display text-xl site-heading sm:text-2xl">
+              <h1
+                className={cn(
+                  'header-title truncate font-display text-xl site-heading sm:text-2xl',
+                  isCompact && 'header-title-compact',
+                )}
+              >
                 {copy.title}
               </h1>
-              <p className="hidden text-xs tracking-[0.12em] site-subtle sm:block">
+              <p
+                className={cn(
+                  'header-subtitle hidden text-xs tracking-[0.12em] site-subtle sm:block',
+                  isCompact && 'header-subtitle-hidden',
+                )}
+              >
                 {copy.subtitle}
               </p>
             </div>
           </div>
 
           <div className="flex flex-col gap-3 lg:items-end">
-            <div className="current-pill">
+            <div className={cn('current-pill', isCompact && 'current-pill-compact')}>
               <p className="text-xs tracking-[0.16em] site-subtle">{copy.currentChapter}</p>
               <p className="mt-1 text-sm site-heading">
                 {currentEraName} · {currentRange}
               </p>
-              <p className="mt-1 text-xs tracking-[0.14em] site-subtle">
+              <p
+                className={cn(
+                  'current-pill-alt mt-1 text-xs tracking-[0.14em] site-subtle',
+                  isCompact && 'current-pill-alt-hidden',
+                )}
+              >
                 {currentEraAltName}
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="preference-panel">
+            <div
+              className={cn(
+                'flex flex-wrap items-center gap-3',
+                isCompact && 'header-actions-compact',
+              )}
+            >
+              <div className={cn('preference-panel', isCompact && 'preference-panel-compact')}>
                 <span className="preference-label">
                   <SunMedium className="h-4 w-4" />
                   {copy.themeLabel}
@@ -137,7 +169,7 @@ export function Header({
                 </div>
               </div>
 
-              <div className="preference-panel">
+              <div className={cn('preference-panel', isCompact && 'preference-panel-compact')}>
                 <span className="preference-label">
                   <Languages className="h-4 w-4" />
                   {copy.languageLabel}

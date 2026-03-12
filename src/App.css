@@ -19,6 +19,11 @@
   mask-image: linear-gradient(180deg, rgba(255, 255, 255, 0.92), transparent 92%);
 }
 
+.compact-trigger {
+  height: 1px;
+  width: 100%;
+}
+
 .site-heading {
   color: var(--text-primary);
 }
@@ -44,6 +49,24 @@
   box-shadow: 0 14px 30px var(--panel-shadow-soft);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
+  transition:
+    box-shadow 0.24s ease,
+    background-color 0.24s ease,
+    border-color 0.24s ease;
+}
+
+.header-shell-compact {
+  box-shadow: 0 10px 18px var(--panel-shadow-soft);
+}
+
+.header-shell-inner-compact {
+  gap: 0.7rem;
+  padding-top: 0.7rem;
+  padding-bottom: 0.7rem;
+}
+
+.header-main-row-compact {
+  gap: 0.9rem;
 }
 
 .brand-mark {
@@ -57,6 +80,51 @@
   background: var(--surface-solid);
   color: var(--text-primary);
   box-shadow: 0 12px 26px var(--panel-shadow-soft);
+  transition:
+    height 0.24s ease,
+    width 0.24s ease,
+    box-shadow 0.24s ease;
+}
+
+.brand-mark-compact {
+  height: 2.25rem;
+  width: 2.25rem;
+  box-shadow: 0 8px 16px var(--panel-shadow-soft);
+}
+
+.header-title {
+  transition:
+    font-size 0.24s ease,
+    line-height 0.24s ease,
+    transform 0.24s ease;
+}
+
+.header-title-compact {
+  font-size: 1.05rem !important;
+  line-height: 1.15 !important;
+  transform: translateY(-1px);
+}
+
+@media (min-width: 640px) {
+  .header-title-compact {
+    font-size: 1.35rem !important;
+  }
+}
+
+.header-subtitle {
+  transition:
+    opacity 0.2s ease,
+    max-height 0.2s ease,
+    margin 0.2s ease,
+    transform 0.2s ease;
+}
+
+.header-subtitle-hidden {
+  opacity: 0;
+  max-height: 0;
+  margin-top: 0 !important;
+  overflow: hidden;
+  transform: translateY(-4px);
 }
 
 .current-pill {
@@ -66,6 +134,33 @@
   background: var(--surface-solid);
   padding: 0.8rem 1rem;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition:
+    padding 0.22s ease,
+    min-width 0.22s ease,
+    transform 0.22s ease;
+}
+
+.current-pill-compact {
+  min-width: 0;
+  padding: 0.55rem 0.85rem;
+}
+
+.current-pill-alt {
+  transition:
+    opacity 0.2s ease,
+    max-height 0.2s ease,
+    margin 0.2s ease;
+}
+
+.current-pill-alt-hidden {
+  opacity: 0;
+  max-height: 0;
+  margin-top: 0 !important;
+  overflow: hidden;
+}
+
+.header-actions-compact {
+  gap: 0.55rem;
 }
 
 .preference-panel {
@@ -76,6 +171,15 @@
   border: 1px solid var(--panel-border);
   background: var(--panel-bg);
   padding: 0.35rem 0.45rem 0.35rem 0.85rem;
+  transition:
+    padding 0.22s ease,
+    gap 0.22s ease,
+    transform 0.22s ease;
+}
+
+.preference-panel-compact {
+  gap: 0.45rem;
+  padding: 0.28rem 0.38rem 0.28rem 0.7rem;
 }
 
 .preference-label {
@@ -439,6 +543,7 @@
   padding-top: 0.8rem;
   padding-bottom: 0.8rem;
   box-shadow: 0 12px 24px var(--panel-shadow-soft);
+  transform: translateZ(0);
 }
 
 .chapter-rail-head {
