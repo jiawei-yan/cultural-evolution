@@ -1,20 +1,17 @@
-import { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  ArrowRight,
-  Compass,
-  Globe2,
-  Landmark,
-  Orbit,
-  Sparkles,
-} from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ExternalLink } from 'lucide-react';
 import { Header } from '@/components/Header';
-import { WorldMap } from '@/components/WorldMap';
 import { Timeline } from '@/components/Timeline';
-import { CulturePanel } from '@/components/CulturePanel';
+import { WorldMap } from '@/components/WorldMap';
 import { CultureList } from '@/components/CultureList';
+import { CulturePanel } from '@/components/CulturePanel';
 import { Button } from '@/components/ui/button';
-import { eras, type Culture } from '@/data/cultures';
+import {
+  eras,
+  getSpotlightCulture,
+  type Culture,
+} from '@/data/cultures';
 import './App.css';
 
 const formatYear = (year: number) => {
@@ -29,555 +26,477 @@ const formatEraRange = (startYear: number, endYear: number) =>
 
 function App() {
   const [currentEraIndex, setCurrentEraIndex] = useState(0);
-  const [selectedCulture, setSelectedCulture] = useState<Culture | null>(null);
+  const [focusedCultureId, setFocusedCultureId] = useState(
+    getSpotlightCulture(eras[0]).id,
+  );
+  const [detailCulture, setDetailCulture] = useState<Culture | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [showPanel, setShowPanel] = useState(false);
 
   const currentEra = eras[currentEraIndex];
-  const nextEra = eras[currentEraIndex + 1] ?? null;
+  const spotlightCulture = getSpotlightCulture(currentEra);
+  const focusedCulture =
+    currentEra.cultures.find((culture) => culture.id === focusedCultureId) ??
+    spotlightCulture;
   const previousEra = eras[currentEraIndex - 1] ?? null;
-  const activeCulture = selectedCulture ?? currentEra.cultures[0];
+  const nextEra = eras[currentEraIndex + 1] ?? null;
   const currentRegions = Array.from(
     new Set(currentEra.cultures.map((culture) => culture.location.region)),
   );
-  const signatureTags = Array.from(
-    new Set(currentEra.cultures.flatMap((culture) => culture.features)),
-  ).slice(0, 6);
-  const totalCultures = eras.reduce((sum, era) => sum + era.cultures.length, 0);
-  const eraSpanYears = Math.abs(currentEra.endYear - currentEra.startYear);
-  const topCulture = currentEra.cultures.reduce((maxCulture, culture) => {
-    return culture.radius > maxCulture.radius ? culture : maxCulture;
-  }, currentEra.cultures[0]);
+  const influenceScore = Math.round((focusedCulture.radius / 32) * 100);
 
   useEffect(() => {
-    let interval: ReturnType<typeof setInterval> | undefined;
+    if (!isPlaying) return undefined;
 
-    if (isPlaying) {
-      interval = setInterval(() => {
-        setCurrentEraIndex((prev) => {
-          if (prev >= eras.length - 1) {
-            setIsPlaying(false);
-            return prev;
-          }
-          setSelectedCulture(null);
-          setShowPanel(false);
-          return prev + 1;
-        });
-      }, 4000);
-    }
+    const interval = setInterval(() => {
+      setCurrentEraIndex((prevIndex) => {
+        if (prevIndex >= eras.length - 1) {
+          setIsPlaying(false);
+          return prevIndex;
+        }
+
+        const nextIndex = prevIndex + 1;
+        const nextSpotlight = getSpotlightCulture(eras[nextIndex]);
+        setFocusedCultureId(nextSpotlight.id);
+        setDetailCulture(null);
+        return nextIndex;
+      });
+    }, 4500);
 
     return () => clearInterval(interval);
   }, [isPlaying]);
 
   const handleEraChange = useCallback((index: number) => {
     setCurrentEraIndex(index);
-    setSelectedCulture(null);
-    setShowPanel(false);
+    setFocusedCultureId(getSpotlightCulture(eras[index]).id);
+    setDetailCulture(null);
+    setIsPlaying(false);
   }, []);
 
-  const handleCultureSelect = useCallback((culture: Culture) => {
-    setSelectedCulture(culture);
-    setShowPanel(true);
+  const handleCultureFocus = useCallback((culture: Culture) => {
+    setFocusedCultureId(culture.id);
   }, []);
 
-  const handleClosePanel = useCallback(() => {
-    setShowPanel(false);
-    setSelectedCulture(null);
+  const handleOpenDetail = useCallback((culture: Culture) => {
+    setFocusedCultureId(culture.id);
+    setDetailCulture(culture);
+  }, []);
+
+  const handleCloseDetail = useCallback(() => {
+    setDetailCulture(null);
   }, []);
 
   const togglePlay = useCallback(() => {
+    if (!isPlaying && currentEraIndex === eras.length - 1) {
+      const restartCulture = getSpotlightCulture(eras[0]);
+      setCurrentEraIndex(0);
+      setFocusedCultureId(restartCulture.id);
+      setDetailCulture(null);
+      setIsPlaying(true);
+      return;
+    }
+
     setIsPlaying((prev) => !prev);
-  }, []);
+  }, [currentEraIndex, isPlaying]);
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#050816] text-white">
-      <div className="atlas-background" />
+    <div className="paper-site min-h-screen text-slate-900">
+      <div className="paper-pattern" />
 
       <Header
-        currentChapter={currentEraIndex + 1}
-        totalChapters={eras.length}
         currentEraName={currentEra.name}
         currentRange={formatEraRange(currentEra.startYear, currentEra.endYear)}
-        currentCultureCount={currentEra.cultures.length}
       />
 
-      <main className="relative mx-auto flex w-full max-w-[1500px] flex-col gap-4 px-4 pb-14 pt-6 sm:px-6 lg:px-8">
-        <section className="grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(360px,0.85fr)]">
-          <motion.section
-            className="atlas-panel atlas-hero-panel p-6 sm:p-8"
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <div className="flex flex-col gap-6">
-              <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-                <div className="max-w-3xl">
-                  <p className="atlas-kicker">CULTURAL EVOLUTION ATLAS</p>
-                  <h1 className="mt-4 font-display text-4xl leading-tight text-white sm:text-5xl xl:text-6xl">
-                    从河谷文明到全球网络的人类文化地图
-                  </h1>
-                  <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
-                    这不是静态的年代列表，而是一幅可以切换时代、定位地区、聚焦文明节点的演化界面。
-                    通过时间轴、地图热点和文明卡片，你可以看到文明如何在不同区域兴起、交汇与外溢。
-                  </p>
-                </div>
+      <main className="relative mx-auto flex w-full max-w-[1320px] flex-col gap-6 px-4 pb-16 pt-6 sm:px-6 lg:px-8">
+        <Timeline
+          eras={eras}
+          currentEraIndex={currentEraIndex}
+          onEraChange={handleEraChange}
+          isPlaying={isPlaying}
+          onPlayPause={togglePlay}
+        />
 
-                <div className="grid w-full gap-3 sm:grid-cols-3 lg:max-w-[360px] lg:grid-cols-1">
-                  <div className="metric-card">
-                    <span className="metric-label">历史篇章</span>
-                    <strong className="metric-value">{eras.length}</strong>
-                    <span className="metric-hint">从起源到全球化</span>
-                  </div>
-                  <div className="metric-card">
-                    <span className="metric-label">文化样本</span>
-                    <strong className="metric-value">{totalCultures}</strong>
-                    <span className="metric-hint">覆盖主要文化中心</span>
-                  </div>
-                  <div className="metric-card">
-                    <span className="metric-label">当前跨度</span>
-                    <strong className="metric-value">{eraSpanYears.toLocaleString()}</strong>
-                    <span className="metric-hint">年尺度观察窗口</span>
-                  </div>
-                </div>
+        <section className="grid gap-6 xl:grid-cols-[minmax(0,1.28fr)_360px]">
+          <motion.section
+            className="paper-card p-6 sm:p-8"
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35 }}
+          >
+            <p className="section-eyebrow">CURRENT CHAPTER</p>
+            <div className="mt-4 flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+              <div className="max-w-3xl">
+                <h1 className="hero-title">{currentEra.name}</h1>
+                <p className="mt-3 text-sm font-medium tracking-[0.08em] text-stone-500">
+                  {formatEraRange(currentEra.startYear, currentEra.endYear)}
+                </p>
+                <p className="mt-4 text-lg leading-8 text-slate-800">
+                  {currentEra.headline}
+                </p>
+                <p className="mt-4 max-w-3xl text-sm leading-8 text-slate-600 sm:text-base">
+                  {currentEra.context}
+                </p>
               </div>
 
-              <div className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
-                <div className="info-card">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <span className="atlas-chip">当前篇章</span>
-                    <span className="text-xs tracking-[0.18em] text-slate-400">
-                      第 {currentEraIndex + 1} 幕 / 共 {eras.length} 幕
-                    </span>
-                  </div>
-                  <h2 className="section-title mt-4">{currentEra.name}</h2>
-                  <p className="mt-2 text-sm text-amber-200/90">
-                    {formatEraRange(currentEra.startYear, currentEra.endYear)}
-                  </p>
-                  <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300">
-                    {currentEra.description}
-                  </p>
-
-                  <div className="mt-5 flex flex-wrap gap-2">
-                    {currentRegions.map((region) => (
-                      <span key={region} className="atlas-chip atlas-chip-muted">
-                        {region}
-                      </span>
-                    ))}
-                  </div>
-
-                  <div className="mt-6">
-                    <p className="text-xs uppercase tracking-[0.28em] text-slate-500">
-                      时代关键词
-                    </p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {signatureTags.map((tag) => (
-                        <span key={tag} className="atlas-chip atlas-chip-warm">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
+              <div className="grid gap-3 sm:grid-cols-3 xl:w-[320px] xl:grid-cols-1">
+                <div className="fact-tile">
+                  <span className="fact-label">覆盖区域</span>
+                  <strong className="fact-value">{currentRegions.length}</strong>
+                  <span className="fact-note">{currentRegions.join('、')}</span>
                 </div>
-
-                <div className="info-card">
-                  <div className="flex items-center gap-2 text-sm text-slate-300">
-                    <Sparkles className="h-4 w-4 text-amber-300" />
-                    本幕焦点文明
-                  </div>
-                  <div className="mt-5 flex items-start gap-4">
-                    <div
-                      className="h-14 w-14 rounded-2xl border border-white/10 shadow-[0_12px_32px_rgba(0,0,0,0.24)]"
-                      style={{
-                        background: `radial-gradient(circle at 30% 30%, ${activeCulture.color}, rgba(255,255,255,0.08))`,
-                      }}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <h3 className="font-display text-3xl text-white">
-                        {activeCulture.name}
-                      </h3>
-                      <p className="mt-1 text-sm text-slate-400">{activeCulture.nameEn}</p>
-                    </div>
-                  </div>
-
-                  <p className="mt-5 text-sm leading-7 text-slate-300">
-                    {activeCulture.description}
-                  </p>
-
-                  <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                    <div className="rounded-2xl border border-white/10 bg-slate-950/40 p-4">
-                      <p className="text-xs tracking-[0.18em] text-slate-500">主要区域</p>
-                      <p className="mt-2 text-base text-white">
-                        {activeCulture.location.region}
-                      </p>
-                    </div>
-                    <div className="rounded-2xl border border-white/10 bg-slate-950/40 p-4">
-                      <p className="text-xs tracking-[0.18em] text-slate-500">关键影响</p>
-                      <p className="mt-2 text-base text-white">
-                        {activeCulture.influence.slice(0, 2).join(' / ')}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 flex flex-wrap gap-3">
-                    <Button
-                      onClick={() => handleCultureSelect(activeCulture)}
-                      className="h-11 rounded-full bg-amber-500 px-5 text-slate-950 hover:bg-amber-400"
-                    >
-                      查看文明详情
-                      <ArrowRight className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={togglePlay}
-                      className="h-11 rounded-full border-white/15 bg-white/5 px-5 text-white hover:bg-white/10"
-                    >
-                      {isPlaying ? '暂停自动巡览' : '自动播放历史'}
-                    </Button>
-                  </div>
+                <div className="fact-tile">
+                  <span className="fact-label">文化节点</span>
+                  <strong className="fact-value">{currentEra.cultures.length}</strong>
+                  <span className="fact-note">点击卡片或地图切换焦点</span>
                 </div>
+                <div className="fact-tile">
+                  <span className="fact-label">代表焦点</span>
+                  <strong className="fact-value">{spotlightCulture.name}</strong>
+                  <span className="fact-note">本章影响力最强的文明节点</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-wrap gap-2">
+              {currentEra.keyThreads.map((thread) => (
+                <span key={thread} className="thread-chip">
+                  {thread}
+                </span>
+              ))}
+            </div>
+          </motion.section>
+
+          <motion.aside
+            className="paper-card p-6"
+            initial={{ opacity: 0, x: 18 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.35, delay: 0.05 }}
+          >
+            <p className="section-eyebrow">HOW TO READ</p>
+            <h2 className="mt-3 font-display text-3xl leading-tight text-slate-900">
+              先选上方历史篇章，再看地图与焦点文明。
+            </h2>
+            <ol className="mt-5 space-y-3 text-sm leading-7 text-slate-600">
+              {currentEra.guideQuestions.map((question, index) => (
+                <li key={question} className="flex items-start gap-3">
+                  <span className="step-badge">{index + 1}</span>
+                  <span>{question}</span>
+                </li>
+              ))}
+            </ol>
+
+            <div className="mt-6 rounded-[24px] border border-stone-200 bg-stone-50 p-4">
+              <p className="text-xs tracking-[0.18em] text-stone-500">当前焦点</p>
+              <p className="mt-2 text-xl text-slate-900">{focusedCulture.name}</p>
+              <p className="mt-1 text-sm text-slate-500">{focusedCulture.period}</p>
+            </div>
+
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Button
+                onClick={() => handleOpenDetail(focusedCulture)}
+                className="h-11 rounded-full bg-slate-900 px-5 text-white hover:bg-slate-800"
+              >
+                展开详细资料
+              </Button>
+              <Button
+                variant="outline"
+                onClick={togglePlay}
+                className="h-11 rounded-full border-stone-300 bg-white px-5 text-slate-700 hover:bg-stone-100"
+              >
+                {isPlaying ? '暂停自动浏览' : '自动浏览六个篇章'}
+              </Button>
+            </div>
+          </motion.aside>
+        </section>
+
+        <section className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_380px]">
+          <motion.section
+            className="paper-card p-4 sm:p-5"
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, delay: 0.08 }}
+          >
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="section-eyebrow">WORLD MAP</p>
+                <h2 className="mt-2 font-display text-3xl text-slate-900">
+                  文化中心分布
+                </h2>
+                <p className="mt-2 max-w-2xl text-sm leading-7 text-slate-600">
+                  地图只突出当前焦点文明，其他节点保持简洁显示。先点圆点切换焦点，再通过右侧面板展开细节。
+                </p>
+              </div>
+
+              <div className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-stone-50 px-3 py-2 text-xs text-stone-600">
+                <span className="h-2.5 w-2.5 rounded-full bg-slate-900" />
+                圆点越大，表示该文化在本篇章中的影响范围越广
+              </div>
+            </div>
+
+            <div className="map-shell relative h-[420px] overflow-hidden rounded-[28px] sm:h-[520px]">
+              <WorldMap
+                cultures={currentEra.cultures}
+                selectedCulture={focusedCulture}
+                onCultureSelect={handleCultureFocus}
+              />
+
+              <div className="map-overlay map-overlay-top">
+                <p className="text-xs tracking-[0.18em] text-slate-500">CURRENT WINDOW</p>
+                <p className="mt-2 text-xl text-white">{currentEra.name}</p>
+                <p className="mt-1 text-xs text-slate-300">
+                  {formatEraRange(currentEra.startYear, currentEra.endYear)}
+                </p>
+              </div>
+
+              <div className="map-overlay map-overlay-bottom">
+                <p className="text-xs tracking-[0.18em] text-slate-400">FOCUSED CULTURE</p>
+                <p className="mt-1 text-base text-white">{focusedCulture.name}</p>
+                <p className="mt-2 text-sm leading-6 text-slate-300">
+                  {focusedCulture.location.region} · {focusedCulture.period}
+                </p>
               </div>
             </div>
           </motion.section>
 
           <motion.aside
-            className="atlas-panel p-6"
-            initial={{ opacity: 0, x: 24 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
+            className="paper-card p-6"
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, delay: 0.12 }}
           >
-            <div className="flex items-center justify-between gap-3">
-              <p className="atlas-kicker">ERA INSIGHT</p>
-              <span className="atlas-chip atlas-chip-warm">
-                {isPlaying ? '自动巡航中' : '手动浏览'}
-              </span>
+            <p className="section-eyebrow">FOCUSED CULTURE</p>
+            <div className="mt-4 flex items-start gap-4">
+              <div
+                className="focus-swatch"
+                style={{ backgroundColor: focusedCulture.color }}
+              />
+              <div className="min-w-0 flex-1">
+                <h2 className="font-display text-3xl text-slate-900">
+                  {focusedCulture.name}
+                </h2>
+                <p className="mt-1 text-sm tracking-[0.08em] text-stone-500">
+                  {focusedCulture.nameEn}
+                </p>
+              </div>
             </div>
 
-            <div className="mt-5 space-y-4">
-              <div className="story-card">
-                <div className="story-card-header">
-                  <Landmark className="h-4 w-4 text-amber-300" />
-                  影响力最高节点
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleCultureSelect(topCulture)}
-                  className="mt-4 w-full rounded-3xl border border-white/10 bg-white/5 p-4 text-left transition hover:border-amber-300/50 hover:bg-white/10"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <h3 className="text-xl text-white">{topCulture.name}</h3>
-                      <p className="mt-1 text-sm text-slate-400">{topCulture.period}</p>
-                    </div>
-                    <div
-                      className="h-11 w-11 rounded-full border border-white/15"
-                      style={{ backgroundColor: `${topCulture.color}40` }}
-                    />
-                  </div>
-                  <p className="mt-4 text-sm leading-7 text-slate-300">
-                    {topCulture.description}
-                  </p>
-                </button>
+            <p className="mt-5 text-sm leading-8 text-slate-600">
+              {focusedCulture.description}
+            </p>
+
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <div className="mini-panel">
+                <span className="mini-label">时间</span>
+                <strong className="mini-value">{focusedCulture.period}</strong>
               </div>
-
-              <div className="story-card">
-                <div className="story-card-header">
-                  <Orbit className="h-4 w-4 text-amber-300" />
-                  演化过渡
-                </div>
-                <div className="mt-4 space-y-3">
-                  {previousEra ? (
-                    <div className="rounded-2xl border border-white/10 bg-slate-950/40 p-4">
-                      <p className="text-xs tracking-[0.18em] text-slate-500">上一幕</p>
-                      <p className="mt-2 text-base text-white">{previousEra.name}</p>
-                    </div>
-                  ) : null}
-
-                  <div className="rounded-2xl border border-amber-400/20 bg-amber-400/10 p-4">
-                    <p className="text-xs tracking-[0.18em] text-amber-200/80">当前幕</p>
-                    <p className="mt-2 text-lg text-white">{currentEra.name}</p>
-                    <p className="mt-2 text-sm leading-7 text-slate-200/90">
-                      {currentEra.description}
-                    </p>
-                  </div>
-
-                  <div className="rounded-2xl border border-white/10 bg-slate-950/40 p-4">
-                    <p className="text-xs tracking-[0.18em] text-slate-500">下一幕</p>
-                    <p className="mt-2 text-base text-white">
-                      {nextEra ? nextEra.name : '历史时间线已到终章'}
-                    </p>
-                    <p className="mt-2 text-sm leading-7 text-slate-400">
-                      {nextEra
-                        ? nextEra.description
-                        : '可以返回前面的章节，重新观察不同文明在空间上的分布与影响。'}
-                    </p>
-                  </div>
-                </div>
+              <div className="mini-panel">
+                <span className="mini-label">区域</span>
+                <strong className="mini-value">{focusedCulture.location.region}</strong>
               </div>
+            </div>
 
-              <div className="story-card">
-                <div className="story-card-header">
-                  <Compass className="h-4 w-4 text-amber-300" />
-                  阅读路径建议
-                </div>
-                <ul className="mt-4 space-y-3 text-sm leading-7 text-slate-300">
-                  <li>先看地图热点的空间分布，再查看右侧文明列表的细节。</li>
-                  <li>切换时间轴观察文明中心如何从区域性网络演化为全球网络。</li>
-                  <li>点击文明详情面板，重点比较“主要特征”和“历史影响”的变化。</li>
-                </ul>
+            <div className="mt-5">
+              <div className="flex items-center justify-between text-xs tracking-[0.12em] text-stone-500">
+                <span>影响力强度</span>
+                <span>{influenceScore}%</span>
               </div>
+              <div className="mt-2 h-2 rounded-full bg-stone-200">
+                <div
+                  className="h-full rounded-full bg-slate-900"
+                  style={{ width: `${influenceScore}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <p className="text-xs tracking-[0.18em] text-stone-500">核心特征</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {focusedCulture.features.map((feature) => (
+                  <span key={feature} className="feature-chip">
+                    {feature}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-6 space-y-3">
+              {focusedCulture.influence.map((item) => (
+                <div key={item} className="influence-row">
+                  <span
+                    className="mt-2 h-2 w-2 shrink-0 rounded-full"
+                    style={{ backgroundColor: focusedCulture.color }}
+                  />
+                  <span className="text-sm leading-7 text-slate-600">{item}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Button
+                onClick={() => handleOpenDetail(focusedCulture)}
+                className="h-11 rounded-full bg-[#b35b3a] px-5 text-white hover:bg-[#9c4f32]"
+              >
+                查看完整细节
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => handleCultureFocus(spotlightCulture)}
+                className="h-11 rounded-full border-stone-300 bg-white px-5 text-slate-700 hover:bg-stone-100"
+              >
+                回到代表文明
+              </Button>
             </div>
           </motion.aside>
         </section>
 
-        <section className="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_380px]">
-          <motion.section
-            className="atlas-panel p-3 sm:p-4"
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.15 }}
-          >
-            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="atlas-kicker">INTERACTIVE MAP</p>
-                <h2 className="section-title mt-3">文明热点分布</h2>
-                <p className="mt-2 max-w-2xl text-sm leading-7 text-slate-400">
-                  通过发光节点显示各文明的影响中心。节点越大，表示该文化在当前篇章中的扩散势能越强。
-                </p>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                <span className="atlas-chip">当前焦点：{activeCulture.name}</span>
-                <span className="atlas-chip atlas-chip-muted">
-                  覆盖 {currentRegions.length} 个文化区域
-                </span>
-              </div>
-            </div>
-
-            <div className="relative h-[420px] overflow-hidden rounded-[28px] border border-white/10 bg-[#061120] sm:h-[520px] xl:h-[560px]">
-              <WorldMap
-                cultures={currentEra.cultures}
-                selectedCulture={selectedCulture}
-                onCultureSelect={handleCultureSelect}
-              />
-
-              <div className="map-overlay-card absolute left-4 top-4 max-w-sm">
-                <p className="text-xs tracking-[0.28em] text-amber-200/80">
-                  CURRENT WINDOW
-                </p>
-                <h3 className="mt-3 font-display text-2xl text-white">
-                  {currentEra.name}
-                </h3>
-                <p className="mt-1 text-xs text-slate-400">
-                  {formatEraRange(currentEra.startYear, currentEra.endYear)}
-                </p>
-                <p className="mt-3 text-sm leading-7 text-slate-300">
-                  {currentEra.description}
-                </p>
-              </div>
-
-              <div className="absolute bottom-4 left-4 right-4 grid gap-3 lg:right-auto lg:w-[420px]">
-                <div className="map-overlay-card">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-xs tracking-[0.18em] text-slate-500">时代地标</p>
-                      <p className="mt-2 text-lg text-white">{topCulture.name}</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleCultureSelect(topCulture)}
-                      className="rounded-full border border-amber-300/30 bg-amber-400/10 px-3 py-1 text-xs text-amber-100 transition hover:bg-amber-400/20"
-                    >
-                      查看
-                    </button>
-                  </div>
-                  <p className="mt-3 text-sm leading-7 text-slate-300">
-                    {topCulture.influence.slice(0, 2).join(' / ')}
-                  </p>
-                </div>
-
-                <div className="map-overlay-card">
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="text-xs tracking-[0.18em] text-slate-500">
-                      图例说明
-                    </span>
-                    <Globe2 className="h-4 w-4 text-slate-400" />
-                  </div>
-                  <div className="mt-3 flex flex-wrap gap-3 text-xs text-slate-300">
-                    <span className="inline-flex items-center gap-2">
-                      <span className="h-2.5 w-2.5 rounded-full bg-amber-300" />
-                      文化核心节点
-                    </span>
-                    <span className="inline-flex items-center gap-2">
-                      <span className="h-2.5 w-2.5 rounded-full bg-sky-300" />
-                      地理网格
-                    </span>
-                    <span className="inline-flex items-center gap-2">
-                      <span className="h-2.5 w-2.5 rounded-full bg-white/70" />
-                      点击展开详情
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.section>
-
-          <div className="grid gap-4">
-            <motion.div
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              <CultureList
-                cultures={currentEra.cultures}
-                selectedCulture={selectedCulture}
-                onCultureSelect={handleCultureSelect}
-                eraName={currentEra.name}
-              />
-            </motion.div>
-
-            <motion.section
-              className="atlas-panel p-5"
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.25 }}
-            >
-              <p className="atlas-kicker">THREADS</p>
-              <h3 className="section-title mt-3">文明线索</h3>
-              <div className="mt-4 space-y-3">
-                {currentEra.cultures.slice(0, 3).map((culture) => (
-                  <button
-                    key={culture.id}
-                    type="button"
-                    onClick={() => handleCultureSelect(culture)}
-                    className="w-full rounded-3xl border border-white/10 bg-white/[0.04] p-4 text-left transition hover:border-white/20 hover:bg-white/[0.07]"
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <p className="text-base text-white">{culture.name}</p>
-                        <p className="mt-1 text-xs text-slate-500">{culture.period}</p>
-                      </div>
-                      <span
-                        className="mt-1 h-3 w-3 rounded-full"
-                        style={{ backgroundColor: culture.color }}
-                      />
-                    </div>
-                    <p className="mt-3 line-clamp-2 text-sm leading-7 text-slate-300">
-                      {culture.features.slice(0, 3).join(' / ')}
-                    </p>
-                  </button>
-                ))}
-              </div>
-            </motion.section>
-          </div>
-        </section>
-
         <motion.section
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
+          transition={{ duration: 0.35, delay: 0.16 }}
         >
-          <Timeline
-            eras={eras}
-            currentEraIndex={currentEraIndex}
-            onEraChange={handleEraChange}
-            isPlaying={isPlaying}
-            onPlayPause={togglePlay}
+          <CultureList
+            cultures={currentEra.cultures}
+            selectedCulture={focusedCulture}
+            eraName={currentEra.name}
+            onCultureSelect={handleCultureFocus}
+            onOpenFocusedCulture={() => handleOpenDetail(focusedCulture)}
           />
         </motion.section>
 
-        <section className="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
+        <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
           <motion.section
-            className="atlas-panel p-6"
-            initial={{ opacity: 0, y: 24 }}
+            className="space-y-4"
+            initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.35 }}
+            transition={{ duration: 0.35, delay: 0.2 }}
           >
-            <p className="atlas-kicker">INFLUENCE INDEX</p>
-            <h3 className="section-title mt-3">本幕文化强度对比</h3>
-            <div className="mt-6 space-y-4">
-              {currentEra.cultures.map((culture) => {
-                const strength = Math.round((culture.radius / 32) * 100);
+            <details className="expand-card" open>
+              <summary>
+                <div>
+                  <p className="section-eyebrow">READING NOTES</p>
+                  <h3 className="mt-1 text-lg text-slate-900">这一章先看什么</h3>
+                </div>
+              </summary>
+              <ul className="expand-list">
+                {currentEra.guideQuestions.map((question) => (
+                  <li key={question}>{question}</li>
+                ))}
+              </ul>
+            </details>
 
-                return (
+            <details className="expand-card">
+              <summary>
+                <div>
+                  <p className="section-eyebrow">INNER LOGIC</p>
+                  <h3 className="mt-1 text-lg text-slate-900">本章内部的文明线索</h3>
+                </div>
+              </summary>
+              <div className="space-y-3 pt-4">
+                {currentEra.cultures.map((culture) => (
                   <button
                     key={culture.id}
                     type="button"
-                    onClick={() => handleCultureSelect(culture)}
-                    className="w-full rounded-3xl border border-white/10 bg-white/[0.03] p-4 text-left transition hover:border-white/20 hover:bg-white/[0.06]"
+                    onClick={() => handleCultureFocus(culture)}
+                    className="logic-row"
                   >
-                    <div className="flex items-center justify-between gap-4">
-                      <div>
-                        <p className="text-base text-white">{culture.name}</p>
-                        <p className="mt-1 text-xs text-slate-500">{culture.location.region}</p>
-                      </div>
-                      <span className="text-sm text-slate-300">{strength}%</span>
-                    </div>
-                    <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-900/80">
-                      <motion.div
-                        className="h-full rounded-full"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${strength}%` }}
-                        transition={{ duration: 0.6, delay: 0.1 }}
+                    <div className="flex min-w-0 items-start gap-3">
+                      <span
+                        className="mt-2 h-2.5 w-2.5 shrink-0 rounded-full"
                         style={{ backgroundColor: culture.color }}
                       />
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-slate-900">{culture.name}</p>
+                        <p className="mt-1 text-sm leading-7 text-slate-600">
+                          {culture.influence[0]}
+                        </p>
+                      </div>
                     </div>
                   </button>
-                );
-              })}
-            </div>
+                ))}
+              </div>
+            </details>
+
+            <details className="expand-card">
+              <summary>
+                <div>
+                  <p className="section-eyebrow">TRANSITION</p>
+                  <h3 className="mt-1 text-lg text-slate-900">与前后篇章的关系</h3>
+                </div>
+              </summary>
+              <div className="grid gap-3 pt-4 sm:grid-cols-2">
+                <div className="transition-card">
+                  <p className="text-xs tracking-[0.16em] text-stone-500">上一章</p>
+                  <p className="mt-2 text-base text-slate-900">
+                    {previousEra ? previousEra.name : '这是起点篇章'}
+                  </p>
+                  <p className="mt-2 text-sm leading-7 text-slate-600">
+                    {previousEra
+                      ? previousEra.headline
+                      : '可以从这里开始，先建立对文明起源、国家形成和早期制度的整体理解。'}
+                  </p>
+                </div>
+                <div className="transition-card">
+                  <p className="text-xs tracking-[0.16em] text-stone-500">下一章</p>
+                  <p className="mt-2 text-base text-slate-900">
+                    {nextEra ? nextEra.name : '这是最新篇章'}
+                  </p>
+                  <p className="mt-2 text-sm leading-7 text-slate-600">
+                    {nextEra
+                      ? nextEra.headline
+                      : '此处已经来到时间线末端，可以回看前几章比较文明中心如何迁移与重组。'}
+                  </p>
+                </div>
+              </div>
+            </details>
           </motion.section>
 
-          <motion.section
-            className="atlas-panel p-6"
-            initial={{ opacity: 0, y: 24 }}
+          <motion.aside
+            className="paper-card p-6"
+            initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
+            transition={{ duration: 0.35, delay: 0.24 }}
           >
-            <p className="atlas-kicker">TRANSITION NOTES</p>
-            <h3 className="section-title mt-3">时代观察</h3>
+            <p className="section-eyebrow">FURTHER READING</p>
+            <h2 className="mt-3 font-display text-3xl text-slate-900">
+              权威延伸阅读
+            </h2>
+            <p className="mt-3 text-sm leading-7 text-slate-600">
+              这些链接来自博物馆、国际组织、图书馆与百科机构，适合继续沿着当前篇章深入阅读。
+            </p>
 
-            <div className="mt-6 space-y-4">
-              <div className="story-card">
-                <div className="story-card-header">
-                  <Globe2 className="h-4 w-4 text-amber-300" />
-                  区域覆盖
-                </div>
-                <p className="mt-3 text-sm leading-7 text-slate-300">
-                  当前篇章主要分布在 {currentRegions.join('、')}，共形成{' '}
-                  {currentEra.cultures.length} 个可观察的文化中心。
-                </p>
-              </div>
-
-              <div className="story-card">
-                <div className="story-card-header">
-                  <Landmark className="h-4 w-4 text-amber-300" />
-                  代表性特征
-                </div>
-                <p className="mt-3 text-sm leading-7 text-slate-300">
-                  这一时期高频出现的文化标签包括 {signatureTags.slice(0, 4).join('、')}
-                  ，显示出制度、技术与思想共同推动文明跃迁。
-                </p>
-              </div>
-
-              <div className="story-card">
-                <div className="story-card-header">
-                  <Orbit className="h-4 w-4 text-amber-300" />
-                  时间走向
-                </div>
-                <p className="mt-3 text-sm leading-7 text-slate-300">
-                  {nextEra
-                    ? `如果继续推进时间轴，下一阶段将进入“${nextEra.name}”，观察重点会从当前的 ${currentEra.name} 转向新的交流机制和权力结构。`
-                    : '时间线已经来到最新章节，此时更适合回看前几幕，比较文明中心的迁移与重组。'}
-                </p>
-              </div>
+            <div className="mt-5 space-y-3">
+              {currentEra.resources.map((resource) => (
+                <a
+                  key={resource.url}
+                  href={resource.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="resource-link"
+                >
+                  <div className="resource-meta">
+                    <span>{resource.source}</span>
+                    <ExternalLink className="h-4 w-4" />
+                  </div>
+                  <h3 className="mt-2 text-base text-slate-900">{resource.title}</h3>
+                  <p className="mt-2 text-sm leading-7 text-slate-600">
+                    {resource.description}
+                  </p>
+                </a>
+              ))}
             </div>
-          </motion.section>
+          </motion.aside>
         </section>
       </main>
 
       <AnimatePresence>
-        {showPanel && selectedCulture && (
-          <CulturePanel culture={selectedCulture} onClose={handleClosePanel} />
+        {detailCulture && (
+          <CulturePanel
+            culture={detailCulture}
+            eraName={currentEra.name}
+            eraRange={formatEraRange(currentEra.startYear, currentEra.endYear)}
+            resources={currentEra.resources}
+            onClose={handleCloseDetail}
+          />
         )}
       </AnimatePresence>
     </div>

@@ -1,7 +1,7 @@
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
-  Calendar,
   Compass,
+  ExternalLink,
   Globe2,
   Lightbulb,
   MapPin,
@@ -9,178 +9,206 @@ import {
   Sparkles,
   X,
 } from 'lucide-react';
-import { type Culture } from '@/data/cultures';
+import {
+  type Culture,
+  type ResourceLink,
+} from '@/data/cultures';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface CulturePanelProps {
   culture: Culture | null;
+  eraName: string;
+  eraRange: string;
+  resources: ResourceLink[];
   onClose: () => void;
 }
 
-export function CulturePanel({ culture, onClose }: CulturePanelProps) {
+export function CulturePanel({
+  culture,
+  eraName,
+  eraRange,
+  resources,
+  onClose,
+}: CulturePanelProps) {
   if (!culture) return null;
 
   const influenceScore = Math.round((culture.radius / 32) * 100);
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0, x: 360 }}
-        animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: 360 }}
-        transition={{ type: 'spring', damping: 26, stiffness: 220 }}
-        className="fixed inset-y-0 right-0 z-50 h-full w-full border-l border-white/10 bg-slate-950/95 shadow-[0_0_80px_rgba(0,0,0,0.55)] backdrop-blur-2xl sm:w-[430px]"
+    <div className="fixed inset-0 z-50 flex justify-end">
+      <motion.button
+        type="button"
+        className="absolute inset-0 bg-slate-950/30 backdrop-blur-sm"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+      />
+
+      <motion.aside
+        initial={{ x: 420, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        exit={{ x: 420, opacity: 0 }}
+        transition={{ type: 'spring', stiffness: 220, damping: 28 }}
+        className="relative h-full w-full max-w-[520px] overflow-y-auto border-l border-stone-200 bg-[#fffaf2] p-5 shadow-[0_0_80px_rgba(15,23,42,0.16)] sm:p-6"
       >
-        <ScrollArea className="h-full">
-          <div className="p-5 sm:p-6">
-            <div className="mb-5 flex items-center justify-between gap-4">
-              <div>
-                <p className="text-xs tracking-[0.22em] text-slate-500">CULTURE PANEL</p>
-                <p className="mt-1 text-sm text-slate-300">{culture.nameEn}</p>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onClose}
-                className="rounded-full border border-white/10 bg-white/[0.04] text-slate-300 hover:bg-white/[0.08] hover:text-white"
-              >
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="section-eyebrow">DETAIL PANEL</p>
+            <p className="mt-2 text-sm text-stone-500">
+              {eraName} · {eraRange}
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={onClose}
+            className="rounded-full border-stone-300 bg-white text-slate-700 hover:bg-stone-100"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
 
+        <div
+          className="mt-5 rounded-[28px] border border-stone-200 p-6"
+          style={{
+            background: `linear-gradient(135deg, ${culture.color}22, rgba(255,255,255,0.96) 42%)`,
+          }}
+        >
+          <div className="flex items-start gap-4">
             <div
-              className="rounded-[30px] border border-white/10 p-6"
-              style={{
-                background: `linear-gradient(155deg, ${culture.color}25, rgba(15,23,42,0.95) 45%, rgba(2,6,23,0.98))`,
-              }}
+              className="flex h-16 w-16 items-center justify-center rounded-2xl border border-black/5"
+              style={{ backgroundColor: culture.color }}
             >
-              <div className="flex items-start gap-4">
-                <div
-                  className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/15 shadow-[0_20px_45px_rgba(0,0,0,0.26)]"
-                  style={{ backgroundColor: `${culture.color}25` }}
-                >
-                  <Sparkles className="h-8 w-8 text-white" />
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <h2 className="font-display text-3xl text-white">{culture.name}</h2>
-                  <p className="mt-1 text-sm text-slate-200/80">{culture.period}</p>
-                </div>
-              </div>
-
-              <div className="mt-6 grid grid-cols-2 gap-3">
-                <div className="rounded-2xl border border-white/10 bg-slate-950/35 p-4">
-                  <div className="flex items-center gap-2 text-xs tracking-[0.16em] text-slate-500">
-                    <MapPin className="h-3.5 w-3.5" />
-                    REGION
-                  </div>
-                  <p className="mt-2 text-base text-white">{culture.location.region}</p>
-                </div>
-
-                <div className="rounded-2xl border border-white/10 bg-slate-950/35 p-4">
-                  <div className="flex items-center gap-2 text-xs tracking-[0.16em] text-slate-500">
-                    <Compass className="h-3.5 w-3.5" />
-                    INFLUENCE
-                  </div>
-                  <p className="mt-2 text-base text-white">{influenceScore}%</p>
-                </div>
-              </div>
+              <Sparkles className="h-7 w-7 text-white" />
             </div>
-
-            <div className="mt-5 space-y-4">
-              <section className="story-card">
-                <div className="story-card-header">
-                  <Globe2 className="h-4 w-4 text-amber-300" />
-                  文明概述
-                </div>
-                <p className="mt-3 text-sm leading-7 text-slate-300">
-                  {culture.description}
-                </p>
-              </section>
-
-              <section className="story-card">
-                <div className="story-card-header">
-                  <Lightbulb className="h-4 w-4 text-amber-300" />
-                  主要特征
-                </div>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {culture.features.map((feature, index) => (
-                    <motion.div
-                      key={feature}
-                      initial={{ opacity: 0, scale: 0.92 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: index * 0.05 }}
-                    >
-                      <Badge className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-slate-100 hover:bg-white/[0.12]">
-                        {feature}
-                      </Badge>
-                    </motion.div>
-                  ))}
-                </div>
-              </section>
-
-              <section className="story-card">
-                <div className="story-card-header">
-                  <Orbit className="h-4 w-4 text-amber-300" />
-                  历史影响
-                </div>
-                <ul className="mt-4 space-y-3">
-                  {culture.influence.map((item, index) => (
-                    <motion.li
-                      key={item}
-                      initial={{ opacity: 0, x: -12 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.06 }}
-                      className="flex items-start gap-3 text-sm leading-7 text-slate-300"
-                    >
-                      <span
-                        className="mt-2 h-2 w-2 shrink-0 rounded-full"
-                        style={{ backgroundColor: culture.color }}
-                      />
-                      <span>{item}</span>
-                    </motion.li>
-                  ))}
-                </ul>
-              </section>
-
-              <section className="story-card">
-                <div className="story-card-header">
-                  <Calendar className="h-4 w-4 text-amber-300" />
-                  空间与时间定位
-                </div>
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-2xl border border-white/10 bg-slate-950/40 p-4">
-                    <p className="text-xs tracking-[0.16em] text-slate-500">纬度</p>
-                    <p className="mt-2 text-white">{culture.location.lat.toFixed(2)}°</p>
-                  </div>
-                  <div className="rounded-2xl border border-white/10 bg-slate-950/40 p-4">
-                    <p className="text-xs tracking-[0.16em] text-slate-500">经度</p>
-                    <p className="mt-2 text-white">{culture.location.lng.toFixed(2)}°</p>
-                  </div>
-                </div>
-
-                <div className="mt-4">
-                  <div className="flex items-center justify-between gap-4 text-xs text-slate-400">
-                    <span>影响力强度</span>
-                    <span>{influenceScore}%</span>
-                  </div>
-                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-900">
-                    <motion.div
-                      className="h-full rounded-full"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${influenceScore}%` }}
-                      transition={{ duration: 0.55 }}
-                      style={{ backgroundColor: culture.color }}
-                    />
-                  </div>
-                </div>
-              </section>
+            <div className="min-w-0 flex-1">
+              <h2 className="font-display text-4xl text-slate-900">
+                {culture.name}
+              </h2>
+              <p className="mt-2 text-sm tracking-[0.12em] text-stone-500">
+                {culture.nameEn}
+              </p>
+              <p className="mt-3 text-sm leading-7 text-slate-600">{culture.period}</p>
             </div>
           </div>
-        </ScrollArea>
-      </motion.div>
-    </AnimatePresence>
+
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            <div className="mini-panel">
+              <span className="mini-label">地理区域</span>
+              <strong className="mini-value">{culture.location.region}</strong>
+            </div>
+            <div className="mini-panel">
+              <span className="mini-label">影响力强度</span>
+              <strong className="mini-value">{influenceScore}%</strong>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-5 space-y-4">
+          <section className="panel-block">
+            <div className="panel-block-header">
+              <Globe2 className="h-4 w-4 text-stone-500" />
+              文明概述
+            </div>
+            <p className="mt-3 text-sm leading-8 text-slate-600">{culture.description}</p>
+          </section>
+
+          <section className="panel-block">
+            <div className="panel-block-header">
+              <Lightbulb className="h-4 w-4 text-stone-500" />
+              主要特征
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {culture.features.map((feature) => (
+                <span key={feature} className="feature-chip">
+                  {feature}
+                </span>
+              ))}
+            </div>
+          </section>
+
+          <section className="panel-block">
+            <div className="panel-block-header">
+              <Orbit className="h-4 w-4 text-stone-500" />
+              深层影响
+            </div>
+            <div className="mt-4 space-y-3">
+              {culture.influence.map((item) => (
+                <div key={item} className="influence-row">
+                  <span
+                    className="mt-2 h-2 w-2 shrink-0 rounded-full"
+                    style={{ backgroundColor: culture.color }}
+                  />
+                  <span className="text-sm leading-7 text-slate-600">{item}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="panel-block">
+            <div className="panel-block-header">
+              <MapPin className="h-4 w-4 text-stone-500" />
+              空间坐标
+            </div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <div className="mini-panel">
+                <span className="mini-label">纬度</span>
+                <strong className="mini-value">{culture.location.lat.toFixed(2)}°</strong>
+              </div>
+              <div className="mini-panel">
+                <span className="mini-label">经度</span>
+                <strong className="mini-value">{culture.location.lng.toFixed(2)}°</strong>
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <div className="flex items-center justify-between text-xs tracking-[0.12em] text-stone-500">
+                <span>地图影响力强度</span>
+                <span>{influenceScore}%</span>
+              </div>
+              <div className="mt-2 h-2 rounded-full bg-stone-200">
+                <div
+                  className="h-full rounded-full"
+                  style={{ width: `${influenceScore}%`, backgroundColor: culture.color }}
+                />
+              </div>
+            </div>
+          </section>
+
+          <section className="panel-block">
+            <div className="panel-block-header">
+              <Compass className="h-4 w-4 text-stone-500" />
+              延伸阅读
+            </div>
+            <p className="mt-3 text-sm leading-7 text-slate-600">
+              如果你想继续深入这一篇章，下面这些权威页面可以作为下一步阅读入口。
+            </p>
+            <div className="mt-4 space-y-3">
+              {resources.map((resource) => (
+                <a
+                  key={resource.url}
+                  href={resource.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="panel-link"
+                >
+                  <div className="resource-meta">
+                    <span>{resource.source}</span>
+                    <ExternalLink className="h-4 w-4" />
+                  </div>
+                  <h3 className="mt-2 text-sm font-medium text-slate-900">
+                    {resource.title}
+                  </h3>
+                  <p className="mt-2 text-sm leading-7 text-slate-600">
+                    {resource.description}
+                  </p>
+                </a>
+              ))}
+            </div>
+          </section>
+        </div>
+      </motion.aside>
+    </div>
   );
 }

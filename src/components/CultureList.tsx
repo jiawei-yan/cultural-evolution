@@ -1,62 +1,67 @@
 import { motion } from 'framer-motion';
-import { MapPin } from 'lucide-react';
+import { Layers3 } from 'lucide-react';
 import { type Culture } from '@/data/cultures';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@/components/ui/button';
 import { CultureCard } from './CultureCard';
 
 interface CultureListProps {
   cultures: Culture[];
   selectedCulture: Culture | null;
-  onCultureSelect: (culture: Culture) => void;
   eraName: string;
+  onCultureSelect: (culture: Culture) => void;
+  onOpenFocusedCulture: () => void;
 }
 
 export function CultureList({
   cultures,
   selectedCulture,
-  onCultureSelect,
   eraName,
+  onCultureSelect,
+  onOpenFocusedCulture,
 }: CultureListProps) {
-  const regions = Array.from(new Set(cultures.map((culture) => culture.location.region)));
-
   return (
-    <div className="atlas-panel flex min-h-[360px] flex-col overflow-hidden">
-      <div className="border-b border-white/10 bg-white/[0.04] px-5 py-4">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h3 className="flex items-center gap-2 text-lg font-semibold text-white">
-              <MapPin className="h-5 w-5 text-amber-300" />
-              {eraName}
-            </h3>
-            <p className="mt-1 text-sm text-slate-400">
-              当前共 {cultures.length} 个文化节点，覆盖 {regions.join('、')}
-            </p>
-          </div>
+    <div className="paper-card p-6">
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div>
+          <p className="section-eyebrow">CULTURE NODES</p>
+          <h2 className="mt-2 font-display text-3xl text-slate-900">
+            {eraName}的文化节点
+          </h2>
+          <p className="mt-2 text-sm leading-7 text-stone-600">
+            这里保留本篇章最重要的节点卡片。点击卡片切换焦点，确认当前重点后再展开详细资料。
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-stone-50 px-3 py-2 text-xs text-stone-600">
+            <Layers3 className="h-4 w-4" />
+            共 {cultures.length} 个节点
+          </span>
+          <Button
+            variant="outline"
+            onClick={onOpenFocusedCulture}
+            className="rounded-full border-stone-300 bg-white text-slate-700 hover:bg-stone-100"
+          >
+            查看当前焦点详情
+          </Button>
         </div>
       </div>
 
-      <ScrollArea className="flex-1 px-4 py-4">
-        <div className="space-y-3">
-          {cultures.map((culture, index) => (
-            <CultureCard
-              key={culture.id}
-              culture={culture}
-              index={index}
-              isActive={selectedCulture?.id === culture.id}
-              onClick={() => onCultureSelect(culture)}
-            />
-          ))}
-        </div>
-
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.35 }}
-          className="px-2 pb-2 pt-5 text-center text-xs tracking-[0.16em] text-slate-500"
-        >
-          CLICK A NODE TO OPEN THE CULTURE PANEL
-        </motion.p>
-      </ScrollArea>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3"
+      >
+        {cultures.map((culture, index) => (
+          <CultureCard
+            key={culture.id}
+            culture={culture}
+            index={index}
+            isActive={selectedCulture?.id === culture.id}
+            onClick={() => onCultureSelect(culture)}
+          />
+        ))}
+      </motion.div>
     </div>
   );
 }

@@ -4,73 +4,38 @@
 
 @layer base {
   :root {
-    --background: 222 62% 7%;
-    --foreground: 210 40% 98%;
-    --card: 222 52% 10%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 52% 10%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 41 96% 54%;
-    --primary-foreground: 222 70% 10%;
-    --secondary: 221 34% 16%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 220 31% 16%;
-    --muted-foreground: 215 20% 72%;
-    --accent: 220 31% 16%;
-    --accent-foreground: 210 40% 98%;
+    --background: 40 48% 96%;
+    --foreground: 215 30% 16%;
+    --card: 0 0% 100%;
+    --card-foreground: 215 30% 16%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 30% 16%;
+    --primary: 215 34% 16%;
+    --primary-foreground: 40 60% 97%;
+    --secondary: 35 35% 92%;
+    --secondary-foreground: 215 30% 16%;
+    --muted: 35 25% 92%;
+    --muted-foreground: 24 10% 42%;
+    --accent: 31 58% 87%;
+    --accent-foreground: 215 30% 16%;
     --destructive: 0 72% 52%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 218 27% 18%;
-    --input: 218 27% 18%;
-    --ring: 41 96% 54%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 35 18% 84%;
+    --input: 35 18% 84%;
+    --ring: 21 51% 47%;
     --radius: 1rem;
-    --sidebar-background: 222 62% 7%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 41 96% 54%;
-    --sidebar-primary-foreground: 222 70% 10%;
-    --sidebar-accent: 221 34% 16%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 218 27% 18%;
-    --sidebar-ring: 41 96% 54%;
-    --page-bg: #050816;
-    --page-bg-soft: #0b1224;
-    --panel-bg: rgba(7, 14, 28, 0.76);
-    --panel-border: rgba(148, 163, 184, 0.14);
-    --panel-shadow: 0 32px 80px rgba(0, 0, 0, 0.34);
-    --font-display: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', 'Songti SC',
-      'STSong', 'Noto Serif CJK SC', serif;
-    --font-body: 'Avenir Next', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
-      'Noto Sans CJK SC', sans-serif;
-  }
-
-  .dark {
-    --background: 222 62% 7%;
-    --foreground: 210 40% 98%;
-    --card: 222 52% 10%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 52% 10%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 41 96% 54%;
-    --primary-foreground: 222 70% 10%;
-    --secondary: 221 34% 16%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 220 31% 16%;
-    --muted-foreground: 215 20% 72%;
-    --accent: 220 31% 16%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 72% 52%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 218 27% 18%;
-    --input: 218 27% 18%;
-    --ring: 41 96% 54%;
-    --sidebar-background: 222 62% 7%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 41 96% 54%;
-    --sidebar-primary-foreground: 222 70% 10%;
-    --sidebar-accent: 221 34% 16%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 218 27% 18%;
-    --sidebar-ring: 41 96% 54%;
+    --sidebar-background: 40 48% 96%;
+    --sidebar-foreground: 215 30% 16%;
+    --sidebar-primary: 215 34% 16%;
+    --sidebar-primary-foreground: 40 60% 97%;
+    --sidebar-accent: 35 35% 92%;
+    --sidebar-accent-foreground: 215 30% 16%;
+    --sidebar-border: 35 18% 84%;
+    --sidebar-ring: 21 51% 47%;
+    --font-display: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua',
+      'Songti SC', 'Noto Serif CJK SC', serif;
+    --font-body: 'Avenir Next', 'PingFang SC', 'Hiragino Sans GB',
+      'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
   }
 }
 
@@ -88,9 +53,9 @@
     min-height: 100vh;
     font-family: var(--font-body);
     background:
-      radial-gradient(circle at top left, rgba(251, 191, 36, 0.14), transparent 30%),
-      radial-gradient(circle at 85% 12%, rgba(56, 189, 248, 0.12), transparent 26%),
-      linear-gradient(180deg, var(--page-bg-soft), var(--page-bg));
+      radial-gradient(circle at top left, rgba(216, 165, 114, 0.12), transparent 28%),
+      radial-gradient(circle at 85% 8%, rgba(79, 108, 126, 0.1), transparent 22%),
+      linear-gradient(180deg, #f8f4ec 0%, #f4efe5 100%);
   }
 
   #root {
@@ -98,7 +63,7 @@
   }
 
   ::selection {
-    background: rgba(251, 191, 36, 0.28);
-    color: #fff8e7;
+    background: rgba(179, 91, 58, 0.22);
+    color: #1e293b;
   }
 }

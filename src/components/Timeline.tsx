@@ -2,7 +2,6 @@ import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
 import { type Era } from '@/data/cultures';
 import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
 
 interface TimelineProps {
@@ -27,14 +26,6 @@ export function Timeline({
   isPlaying,
   onPlayPause,
 }: TimelineProps) {
-  const currentEra = eras[currentEraIndex];
-  const progress = (currentEraIndex / (eras.length - 1)) * 100;
-
-  const handleSliderChange = (value: number[]) => {
-    const index = Math.round((value[0] / 100) * (eras.length - 1));
-    onEraChange(index);
-  };
-
   const goToPrevious = () => {
     if (currentEraIndex > 0) {
       onEraChange(currentEraIndex - 1);
@@ -48,111 +39,100 @@ export function Timeline({
   };
 
   return (
-    <div className="atlas-panel p-5 sm:p-6">
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-        <motion.div
-          key={currentEra.id}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.25 }}
-        >
-          <p className="atlas-kicker">TIMELINE</p>
-          <h2 className="section-title mt-3">{currentEra.name}</h2>
-          <p className="mt-2 text-sm text-amber-200/90">
-            {formatYear(currentEra.startYear)} - {formatYear(currentEra.endYear)}
+    <section className="chapter-rail sticky top-[72px] z-30 rounded-[28px] border border-stone-200/90 bg-[rgba(255,250,242,0.92)] p-4 shadow-[0_18px_40px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:p-5">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <p className="section-eyebrow">HISTORICAL CHAPTERS</p>
+          <h2 className="mt-2 font-display text-3xl text-slate-900">
+            六个历史篇章
+          </h2>
+          <p className="mt-2 text-sm leading-7 text-stone-600">
+            这是页面最重要的入口。先在这里选时代，再去下面看地图、焦点文明和详细资料。
           </p>
-          <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300">
-            {currentEra.description}
-          </p>
-        </motion.div>
+        </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <span className="atlas-chip">
-            第 {currentEraIndex + 1} / {eras.length} 幕
-          </span>
-          <span className="atlas-chip atlas-chip-muted">
-            {isPlaying ? '自动巡航中' : '拖动或点击切换'}
-          </span>
-        </div>
-      </div>
-
-      <div className="mt-6 flex items-center gap-3">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={onPlayPause}
-          className="h-11 w-11 rounded-full border-white/10 bg-white/[0.05] text-white hover:bg-white/[0.1]"
-        >
-          {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-        </Button>
-
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={goToPrevious}
-          disabled={currentEraIndex === 0}
-          className="h-11 w-11 rounded-full border-white/10 bg-white/[0.05] text-white hover:bg-white/[0.1]"
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-
-        <div className="flex-1 px-1">
-          <Slider
-            value={[progress]}
-            onValueChange={handleSliderChange}
-            max={100}
-            step={100 / (eras.length - 1)}
-            className="w-full"
-          />
-        </div>
-
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={goToNext}
-          disabled={currentEraIndex === eras.length - 1}
-          className="h-11 w-11 rounded-full border-white/10 bg-white/[0.05] text-white hover:bg-white/[0.1]"
-        >
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-      </div>
-
-      <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-6">
-        {eras.map((era, index) => (
-          <button
-            key={era.id}
-            type="button"
-            onClick={() => onEraChange(index)}
-            className={cn(
-              'rounded-[24px] border p-4 text-left transition-all duration-300',
-              index === currentEraIndex
-                ? 'border-amber-300/50 bg-amber-300/10 shadow-[0_24px_60px_rgba(251,191,36,0.10)]'
-                : 'border-white/10 bg-white/[0.04] hover:border-white/20 hover:bg-white/[0.08]',
-            )}
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={onPlayPause}
+            className="h-10 w-10 rounded-full border-stone-300 bg-white text-slate-700 hover:bg-stone-100"
           >
-            <div className="flex items-start justify-between gap-3">
-              <span
+            {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+          </Button>
+
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={goToPrevious}
+            disabled={currentEraIndex === 0}
+            className="h-10 w-10 rounded-full border-stone-300 bg-white text-slate-700 hover:bg-stone-100"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={goToNext}
+            disabled={currentEraIndex === eras.length - 1}
+            className="h-10 w-10 rounded-full border-stone-300 bg-white text-slate-700 hover:bg-stone-100"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      <div className="mt-5 overflow-x-auto pb-1">
+        <div className="flex min-w-max gap-3">
+          {eras.map((era, index) => (
+            <motion.button
+              key={era.id}
+              type="button"
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.99 }}
+              onClick={() => onEraChange(index)}
+              className={cn(
+                'chapter-card w-[250px] shrink-0 rounded-[24px] border p-4 text-left transition-all duration-300',
+                index === currentEraIndex
+                  ? 'border-slate-900 bg-slate-900 text-white shadow-[0_18px_40px_rgba(15,23,42,0.18)]'
+                  : 'border-stone-200 bg-white text-slate-900 hover:border-stone-300 hover:bg-stone-50',
+              )}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <span
+                  className={cn(
+                    'inline-flex h-7 min-w-7 items-center justify-center rounded-full px-2 text-xs',
+                    index === currentEraIndex
+                      ? 'bg-white/15 text-white'
+                      : 'bg-stone-100 text-stone-600',
+                  )}
+                >
+                  {index + 1}
+                </span>
+                <span
+                  className={cn(
+                    'text-xs tracking-[0.14em]',
+                    index === currentEraIndex ? 'text-white/70' : 'text-stone-500',
+                  )}
+                >
+                  {formatYear(era.startYear)}
+                </span>
+              </div>
+
+              <h3 className="mt-4 text-lg">{era.name}</h3>
+              <p
                 className={cn(
-                  'inline-flex h-7 min-w-7 items-center justify-center rounded-full px-2 text-xs',
-                  index === currentEraIndex
-                    ? 'bg-amber-300 text-slate-950'
-                    : 'bg-slate-900/70 text-slate-300',
+                  'mt-2 text-sm leading-6',
+                  index === currentEraIndex ? 'text-white/80' : 'text-stone-600',
                 )}
               >
-                {index + 1}
-              </span>
-              <span className="text-xs tracking-[0.14em] text-slate-500">
-                {formatYear(era.startYear)}
-              </span>
-            </div>
-
-            <p className="mt-4 text-base text-white">{era.name}</p>
-            <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-400">
-              {era.description}
-            </p>
-          </button>
-        ))}
+                {era.headline}
+              </p>
+            </motion.button>
+          ))}
+        </div>
       </div>
-    </div>
+    </section>
   );
 }

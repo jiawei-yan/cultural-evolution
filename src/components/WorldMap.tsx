@@ -298,171 +298,117 @@ export function WorldMap({ cultures, selectedCulture, onCultureSelect }: WorldMa
       .attr("opacity", 0.9);
 
     // 绘制文化圈
-    cultures.forEach((culture, index) => {
+    cultures.forEach((culture) => {
       const coords = projection([culture.location.lng, culture.location.lat]);
       if (!coords) return;
-      
+
       const [x, y] = coords;
-      
-      // 发光效果组
-      const glowGroup = svg.append("g")
-        .attr("class", "culture-glow")
+      const isFocused = selectedCulture?.id === culture.id;
+
+      const nodeGroup = svg.append("g")
+        .attr("class", "culture-node")
         .style("cursor", "pointer")
         .on("click", () => onCultureSelect(culture));
 
-      // 外发光圈（脉冲效果）
-      glowGroup.append("circle")
+      nodeGroup.append("circle")
         .attr("cx", x)
         .attr("cy", y)
-        .attr("r", 0)
+        .attr("r", culture.radius * (isFocused ? 1.45 : 1.05))
         .attr("fill", culture.color)
-        .attr("opacity", 0.15)
-        .transition()
-        .duration(1000)
-        .delay(index * 200)
-        .attr("r", culture.radius * 2);
+        .attr("opacity", isFocused ? 0.2 : 0.08);
 
-      // 中发光圈
-      glowGroup.append("circle")
+      nodeGroup.append("circle")
         .attr("cx", x)
         .attr("cy", y)
-        .attr("r", 0)
+        .attr("r", culture.radius * (isFocused ? 0.7 : 0.45))
         .attr("fill", culture.color)
-        .attr("opacity", 0.3)
-        .transition()
-        .duration(1000)
-        .delay(index * 200 + 100)
-        .attr("r", culture.radius * 1.2);
+        .attr("opacity", isFocused ? 0.28 : 0.12);
 
-      // 内圈
-      glowGroup.append("circle")
+      const core = nodeGroup.append("circle")
         .attr("cx", x)
         .attr("cy", y)
-        .attr("r", 0)
+        .attr("r", isFocused ? 7 : 5.5)
         .attr("fill", culture.color)
-        .attr("opacity", 0.5)
-        .transition()
-        .duration(1000)
-        .delay(index * 200 + 150)
-        .attr("r", culture.radius * 0.7);
+        .attr("stroke", isFocused ? "#f8fafc" : "#e2e8f0")
+        .attr("stroke-width", isFocused ? 2.2 : 1.2)
+        .style("filter", `drop-shadow(0 0 8px ${culture.color})`);
 
-      // 核心圆圈
-      glowGroup.append("circle")
-        .attr("cx", x)
-        .attr("cy", y)
-        .attr("r", 0)
-        .attr("fill", culture.color)
-        .attr("stroke", "#fff")
-        .attr("stroke-width", 2)
-        .style("filter", `drop-shadow(0 0 10px ${culture.color})`)
-        .transition()
-        .duration(800)
-        .delay(index * 200 + 200)
-        .attr("r", 6);
-
-      // 选中状态
-      if (selectedCulture?.id === culture.id) {
-        // 选中光环
-        glowGroup.append("circle")
+      if (isFocused) {
+        nodeGroup.append("circle")
           .attr("cx", x)
           .attr("cy", y)
-          .attr("r", culture.radius * 2.5)
+          .attr("r", culture.radius * 1.65)
+          .attr("fill", "none")
+          .attr("stroke", "#f8fafc")
+          .attr("stroke-width", 1.2)
+          .attr("stroke-dasharray", "5,5")
+          .attr("opacity", 0.42);
+
+        const pulseCircle = nodeGroup.append("circle")
+          .attr("cx", x)
+          .attr("cy", y)
+          .attr("r", culture.radius * 0.7)
           .attr("fill", "none")
           .attr("stroke", culture.color)
-          .attr("stroke-width", 2)
-          .attr("stroke-dasharray", "4,4")
+          .attr("stroke-width", 1.4)
           .attr("opacity", 0.6);
 
-        // 脉冲动画圈
-        const pulseCircle = glowGroup.append("circle")
-          .attr("cx", x)
-          .attr("cy", y)
-          .attr("r", culture.radius)
-          .attr("fill", "none")
-          .attr("stroke", culture.color)
-          .attr("stroke-width", 1)
-          .attr("opacity", 0.8);
-
-        // 添加脉冲动画
         function pulse() {
           pulseCircle
             .transition()
-            .duration(1500)
-            .attr("r", culture.radius * 3)
+            .duration(1800)
+            .attr("r", culture.radius * 2.25)
             .attr("opacity", 0)
             .on("end", function() {
               d3.select(this)
-                .attr("r", culture.radius)
-                .attr("opacity", 0.8);
+                .attr("r", culture.radius * 0.7)
+                .attr("opacity", 0.6);
               pulse();
             });
         }
         pulse();
+
+        const labelWidth = Math.max(culture.name.length * 13 + 26, 128);
+        const labelY = y - culture.radius * 1.55 - 34;
+
+        nodeGroup.append("path")
+          .attr("d", `M ${x} ${y - 10} L ${x} ${labelY + 28}`)
+          .attr("fill", "none")
+          .attr("stroke", "rgba(248,250,252,0.6)")
+          .attr("stroke-width", 1);
+
+        nodeGroup.append("rect")
+          .attr("x", x - labelWidth / 2)
+          .attr("y", labelY)
+          .attr("width", labelWidth)
+          .attr("height", 34)
+          .attr("rx", 10)
+          .attr("fill", "rgba(248,250,252,0.92)")
+          .attr("stroke", culture.color)
+          .attr("stroke-width", 1);
+
+        nodeGroup.append("text")
+          .attr("x", x)
+          .attr("y", labelY + 21)
+          .attr("text-anchor", "middle")
+          .attr("fill", "#0f172a")
+          .attr("font-size", "12px")
+          .attr("font-weight", "600")
+          .text(culture.name);
       }
 
-      // 文化名称标签（带背景）
-      const labelGroup = glowGroup.append("g")
-        .attr("opacity", 0);
-
-      // 标签背景
-      const textWidth = culture.name.length * 12 + 16;
-      labelGroup.append("rect")
-        .attr("x", x - textWidth / 2)
-        .attr("y", y + culture.radius + 8)
-        .attr("width", textWidth)
-        .attr("height", 22)
-        .attr("rx", 4)
-        .attr("fill", "rgba(15, 23, 42, 0.9)")
-        .attr("stroke", culture.color)
-        .attr("stroke-width", 1);
-
-      // 标签文字
-      labelGroup.append("text")
-        .attr("x", x)
-        .attr("y", y + culture.radius + 23)
-        .attr("text-anchor", "middle")
-        .attr("fill", "#fff")
-        .attr("font-size", "11px")
-        .attr("font-weight", "500")
-        .text(culture.name);
-
-      labelGroup.transition()
-        .duration(500)
-        .delay(index * 200 + 500)
-        .attr("opacity", 1);
-
-      // 悬停效果
-      glowGroup
+      nodeGroup
         .on("mouseenter", function() {
-          d3.select(this).selectAll("circle")
+          core
             .transition()
-            .duration(200)
-            .attr("opacity", (_, circleIndex) => {
-              if (circleIndex === 3) return 1;
-              return 0.85;
-            });
-
-          d3.select(this).select("text")
-            .transition()
-            .duration(200)
-            .attr("fill", "#fef3c7");
+            .duration(180)
+            .attr("r", isFocused ? 8 : 7);
         })
         .on("mouseleave", function() {
-          d3.select(this).selectAll("circle")
+          core
             .transition()
-            .duration(200)
-            .attr("opacity", (_, circleIndex) => {
-              if (circleIndex === 0) return 0.15;
-              if (circleIndex === 1) return 0.3;
-              if (circleIndex === 2) return 0.5;
-              if (circleIndex === 3) return 1;
-              return 0.8;
-            });
-
-          d3.select(this).select("text")
-            .transition()
-            .duration(200)
-            .attr("fill", "#fff");
+            .duration(180)
+            .attr("r", isFocused ? 7 : 5.5);
         });
     });
 

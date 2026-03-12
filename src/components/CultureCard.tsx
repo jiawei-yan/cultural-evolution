@@ -1,94 +1,90 @@
 import { motion } from 'framer-motion';
-import { ArrowUpRight, Calendar, MapPin } from 'lucide-react';
+import { Calendar, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { type Culture } from '@/data/cultures';
 
 interface CultureCardProps {
   culture: Culture;
-  onClick: () => void;
   index: number;
   isActive?: boolean;
+  onClick: () => void;
 }
 
 export function CultureCard({
   culture,
-  onClick,
   index,
   isActive = false,
+  onClick,
 }: CultureCardProps) {
   return (
     <motion.button
       type="button"
-      initial={{ opacity: 0, y: 18 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.06 }}
-      whileHover={{ y: -3 }}
+      transition={{ delay: index * 0.04 }}
+      whileHover={{ y: -2 }}
       whileTap={{ scale: 0.99 }}
       onClick={onClick}
       className={cn(
-        'group w-full rounded-[26px] border p-4 text-left transition-all duration-300',
-        'bg-white/[0.04] backdrop-blur-sm',
+        'w-full rounded-[24px] border p-4 text-left transition-all duration-300',
         isActive
-          ? 'border-amber-300/50 bg-amber-300/10 shadow-[0_24px_60px_rgba(251,191,36,0.12)]'
-          : 'border-white/10 hover:border-white/20 hover:bg-white/[0.07]',
+          ? 'border-slate-900 bg-slate-900 text-white shadow-[0_18px_36px_rgba(15,23,42,0.16)]'
+          : 'border-stone-200 bg-white text-slate-900 hover:border-stone-300 hover:bg-stone-50',
       )}
     >
       <div className="flex items-start gap-4">
         <div
-          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 transition-transform duration-300 group-hover:scale-105"
-          style={{
-            background: `radial-gradient(circle at 35% 35%, ${culture.color}, rgba(255,255,255,0.08))`,
-          }}
-        >
-          <div
-            className="h-4 w-4 rounded-full border border-white/60"
-            style={{ backgroundColor: culture.color }}
-          />
-        </div>
+          className="mt-1 h-11 w-11 shrink-0 rounded-2xl border border-black/5"
+          style={{ backgroundColor: culture.color }}
+        />
 
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <h3 className="truncate text-base font-semibold text-white transition-colors group-hover:text-amber-100">
-                {culture.name}
-              </h3>
-              <p className="mt-1 truncate text-xs tracking-[0.12em] text-slate-500">
+              <h3 className="truncate text-base font-semibold">{culture.name}</h3>
+              <p
+                className={cn(
+                  'mt-1 text-xs tracking-[0.12em]',
+                  isActive ? 'text-white/65' : 'text-stone-500',
+                )}
+              >
                 {culture.nameEn}
               </p>
             </div>
-            <ArrowUpRight
+            <span
               className={cn(
-                'mt-1 h-4 w-4 shrink-0 text-slate-500 transition-all duration-300',
-                isActive ? 'text-amber-200' : 'group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-white',
+                'rounded-full px-2 py-1 text-xs',
+                isActive ? 'bg-white/10 text-white/80' : 'bg-stone-100 text-stone-600',
               )}
-            />
+            >
+              {isActive ? '当前焦点' : '点击聚焦'}
+            </span>
           </div>
 
-          <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-400">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-slate-950/40 px-2.5 py-1">
+          <div
+            className={cn(
+              'mt-3 flex flex-wrap gap-2 text-xs',
+              isActive ? 'text-white/70' : 'text-stone-500',
+            )}
+          >
+            <span className="inline-flex items-center gap-1.5">
               <Calendar className="h-3 w-3" />
               {culture.period}
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-slate-950/40 px-2.5 py-1">
+            <span className="inline-flex items-center gap-1.5">
               <MapPin className="h-3 w-3" />
               {culture.location.region}
             </span>
           </div>
 
-          <p className="mt-3 line-clamp-2 text-sm leading-6 text-slate-300">
+          <p
+            className={cn(
+              'mt-3 line-clamp-3 text-sm leading-7',
+              isActive ? 'text-white/82' : 'text-slate-600',
+            )}
+          >
             {culture.description}
           </p>
-
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {culture.features.slice(0, 3).map((feature) => (
-              <span
-                key={feature}
-                className="rounded-full border border-white/10 bg-white/[0.05] px-2.5 py-1 text-xs text-slate-300"
-              >
-                {feature}
-              </span>
-            ))}
-          </div>
         </div>
       </div>
     </motion.button>
