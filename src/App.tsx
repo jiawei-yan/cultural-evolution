@@ -55,6 +55,7 @@ function App() {
   );
   const [detailCultureId, setDetailCultureId] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isTimelineCompact, setIsTimelineCompact] = useState(false);
 
   const localizedEras = getEras(locale);
   const copy = siteContent[locale];
@@ -112,6 +113,39 @@ function App() {
     return () => window.clearInterval(interval);
   }, [isPlaying, localizedEras]);
 
+  useEffect(() => {
+    let lastY = window.scrollY;
+    let frameId = 0;
+
+    const updateCompactState = () => {
+      const currentY = window.scrollY;
+      const scrollingDown = currentY > lastY;
+
+      setIsTimelineCompact((previous) => {
+        if (currentY < 96) return false;
+        if (scrollingDown && currentY > 220) return true;
+        if (!scrollingDown && currentY < lastY - 18) return false;
+        return previous;
+      });
+
+      lastY = currentY;
+      frameId = 0;
+    };
+
+    const handleScroll = () => {
+      if (frameId) return;
+      frameId = window.requestAnimationFrame(updateCompactState);
+    };
+
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (frameId) window.cancelAnimationFrame(frameId);
+    };
+  }, []);
+
   const handleEraChange = (index: number) => {
     const nextSpotlight = getSpotlightCulture(localizedEras[index]);
     setCurrentEraIndex(index);
@@ -166,6 +200,7 @@ function App() {
           copy={copy.timeline}
           eras={localizedEras}
           locale={locale}
+          isCompact={isTimelineCompact}
           currentEraIndex={currentEraIndex}
           onEraChange={handleEraChange}
           isPlaying={isPlaying}

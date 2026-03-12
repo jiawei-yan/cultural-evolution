@@ -9,6 +9,7 @@ interface TimelineProps {
   copy: SiteCopy['timeline'];
   eras: Era[];
   locale: Locale;
+  isCompact: boolean;
   currentEraIndex: number;
   onEraChange: (index: number) => void;
   isPlaying: boolean;
@@ -27,11 +28,14 @@ export function Timeline({
   copy,
   eras,
   locale,
+  isCompact,
   currentEraIndex,
   onEraChange,
   isPlaying,
   onPlayPause,
 }: TimelineProps) {
+  const currentEra = eras[currentEraIndex];
+
   const goToPrevious = () => {
     if (currentEraIndex > 0) {
       onEraChange(currentEraIndex - 1);
@@ -46,17 +50,58 @@ export function Timeline({
 
   return (
     <section
-      className="chapter-rail sticky z-30 rounded-[28px] p-4 sm:p-5"
+      className={cn(
+        'chapter-rail sticky z-30 rounded-[28px] p-4 sm:p-5',
+        isCompact && 'chapter-rail-compact',
+      )}
       style={{ top: 'calc(var(--sticky-header-height, 108px) + 12px)' }}
     >
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <p className="section-eyebrow">{copy.eyebrow}</p>
-          <h2 className="mt-2 font-display text-3xl site-heading">{copy.title}</h2>
-          <p className="mt-2 text-sm leading-7 site-muted">{copy.description}</p>
+      <div
+        className={cn(
+          'chapter-rail-head flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between',
+          isCompact && 'chapter-rail-head-compact',
+        )}
+      >
+        <div className="chapter-rail-copy min-w-0">
+          <p
+            className={cn(
+              'section-eyebrow chapter-rail-eyebrow',
+              isCompact && 'chapter-rail-eyebrow-hidden',
+            )}
+          >
+            {copy.eyebrow}
+          </p>
+          <div className="chapter-rail-title-row">
+            <h2
+              className={cn(
+                'chapter-rail-title mt-2 font-display text-3xl site-heading',
+                isCompact && 'chapter-rail-title-compact',
+              )}
+            >
+              {copy.title}
+            </h2>
+            {isCompact ? (
+              <span className="chapter-current-pill" title={currentEra?.altName}>
+                {currentEra?.name}
+              </span>
+            ) : null}
+          </div>
+          <p
+            className={cn(
+              'chapter-rail-description mt-2 text-sm leading-7 site-muted',
+              isCompact && 'chapter-rail-description-hidden',
+            )}
+          >
+            {copy.description}
+          </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div
+          className={cn(
+            'chapter-rail-controls flex flex-wrap items-center gap-2',
+            isCompact && 'chapter-rail-controls-compact',
+          )}
+        >
           <Button
             variant="outline"
             size="icon"
@@ -91,17 +136,18 @@ export function Timeline({
         </div>
       </div>
 
-      <div className="mt-5 overflow-x-auto pb-1">
-        <div className="flex min-w-max gap-3">
+      <div className={cn('mt-5 overflow-x-auto pb-1', isCompact && 'mt-3')}>
+        <div className={cn('chapter-track flex min-w-max gap-3', isCompact && 'chapter-track-compact')}>
           {eras.map((era, index) => (
             <motion.button
               key={era.id}
               type="button"
-              whileHover={{ y: -2 }}
+              whileHover={{ y: isCompact ? -1 : -2 }}
               whileTap={{ scale: 0.99 }}
               onClick={() => onEraChange(index)}
               className={cn(
                 'chapter-card w-[250px] shrink-0 rounded-[24px] border p-4 text-left transition-all duration-300',
+                isCompact && 'chapter-card-compact',
                 index === currentEraIndex && 'chapter-card-active',
               )}
             >
@@ -111,8 +157,16 @@ export function Timeline({
               </div>
 
               <h3 className="mt-4 text-lg font-semibold">{era.name}</h3>
-              <p className="mt-1 text-xs tracking-[0.14em] chapter-meta">{era.altName}</p>
-              <p className="chapter-headline mt-2 text-sm leading-6">{era.headline}</p>
+              {!isCompact ? (
+                <>
+                  <p className="mt-1 text-xs tracking-[0.14em] chapter-meta">
+                    {era.altName}
+                  </p>
+                  <p className="chapter-headline mt-2 text-sm leading-6">
+                    {era.headline}
+                  </p>
+                </>
+              ) : null}
             </motion.button>
           ))}
         </div>

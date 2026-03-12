@@ -427,17 +427,132 @@
   box-shadow: 0 18px 40px var(--panel-shadow-soft);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
+  transition:
+    padding 0.26s ease,
+    border-radius 0.26s ease,
+    box-shadow 0.26s ease,
+    transform 0.26s ease;
+}
+
+.chapter-rail-compact {
+  border-radius: 22px;
+  padding-top: 0.8rem;
+  padding-bottom: 0.8rem;
+  box-shadow: 0 12px 24px var(--panel-shadow-soft);
+}
+
+.chapter-rail-head {
+  transition: gap 0.24s ease;
+}
+
+.chapter-rail-head-compact {
+  gap: 0.75rem;
+}
+
+.chapter-rail-copy {
+  min-width: 0;
+}
+
+.chapter-rail-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.chapter-rail-title {
+  transition:
+    margin 0.24s ease,
+    font-size 0.24s ease,
+    line-height 0.24s ease;
+}
+
+.chapter-rail-title-compact {
+  margin-top: 0;
+  font-size: 1.45rem;
+  line-height: 1.15;
+}
+
+.chapter-current-pill {
+  display: inline-flex;
+  max-width: min(100%, 18rem);
+  align-items: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-radius: 9999px;
+  border: 1px solid var(--panel-border);
+  background: var(--surface-soft);
+  padding: 0.42rem 0.75rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.chapter-rail-eyebrow,
+.chapter-rail-description {
+  transition:
+    opacity 0.22s ease,
+    max-height 0.22s ease,
+    margin 0.22s ease,
+    transform 0.22s ease;
+}
+
+.chapter-rail-eyebrow-hidden,
+.chapter-rail-description-hidden {
+  opacity: 0;
+  max-height: 0;
+  margin-top: 0 !important;
+  overflow: hidden;
+  pointer-events: none;
+  transform: translateY(-6px);
+}
+
+.chapter-rail-controls {
+  transition: transform 0.24s ease;
+}
+
+.chapter-rail-controls-compact {
+  transform: scale(0.96);
+  transform-origin: right center;
+}
+
+.chapter-track {
+  transition: gap 0.24s ease;
+}
+
+.chapter-track-compact {
+  gap: 0.75rem;
 }
 
 .chapter-card {
   border-color: var(--panel-border);
   background: var(--panel-bg-strong);
   color: var(--text-primary);
+  transition:
+    width 0.24s ease,
+    padding 0.24s ease,
+    border-radius 0.24s ease,
+    background-color 0.24s ease,
+    border-color 0.24s ease,
+    box-shadow 0.24s ease,
+    transform 0.24s ease;
 }
 
 .chapter-card:hover {
   border-color: var(--panel-border-strong);
   background: var(--surface-hover);
+}
+
+.chapter-card-compact {
+  width: 176px;
+  border-radius: 20px;
+  padding: 0.8rem 0.9rem;
+}
+
+.chapter-card-compact h3 {
+  margin-top: 0.7rem;
+  font-size: 0.98rem;
+  line-height: 1.35;
 }
 
 .chapter-card-active {
